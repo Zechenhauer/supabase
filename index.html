@@ -63,7 +63,6 @@
     
     .matchday-title-box { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 18px; font-weight: 800; flex-wrap: wrap; }
     
-    /* Team-Badges für den Spieltag-Kopf */
     .team-badge { padding: 6px 14px; border-radius: 6px; font-weight: bold; color: #ffffff; background-color: #334155; border: 1px solid #475569; }
     .team-badge.winner { background-color: rgba(22, 101, 52, 0.4); border: 2px solid #22c55e; color: #4ade80; }
     
@@ -457,10 +456,14 @@
         }
     }
 
-    function getBestShortLeg(dartsStr) {
-        if (!dartsStr) return 99;
+    function getValidShortLegs(dartsStr) {
+        if (!dartsStr) return [];
         let parts = dartsStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-        let validLegs = parts.filter(d => d >= 9 && d <= 18);
+        return parts.filter(d => d >= 9 && d <= 18);
+    }
+
+    function getBestShortLeg(dartsStr) {
+        let validLegs = getValidShortLegs(dartsStr);
         if (validLegs.length === 0) return 99;
         return Math.min(...validLegs);
     }
@@ -501,7 +504,7 @@
 
                 st.bloecke[blockName].push(matchObj);
                 let beteiligte = m.spieler_kapellen.split("/").map(s => s.trim());
-                beteiligte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
+                beteiligigte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
 
                 let isDoppel = blockName.toLowerCase().includes("doppel") || m.spieler_kapellen.includes("/");
                 if (isDoppel) return;
@@ -513,7 +516,7 @@
                     if (p1 > p2) isWin = true; else if (p2 > p1) isLoss = true;
                 }
 
-                beteiligte.forEach(subP => {
+                beteiligigte.forEach(subP => {
                     let tk = singlePlayers.find(t => t.toLowerCase() === subP.toLowerCase());
                     if (tk) {
                         if (isWin) spielerStats[tk].siege++;
@@ -590,7 +593,6 @@
             let st = map[key];
             navLinks.innerHTML += `<a href="#spieltag-${st.nummer}">Spieltag ${st.nummer}</a>`;
 
-            // Gesamtergebnis prüfen (z.B. "15:5")
             let kapScore = 0, gegnerScore = 0;
             if (st.endergebnis && st.endergebnis.includes(":")) {
                 let parts = st.endergebnis.split(":");
@@ -646,8 +648,13 @@
         let m = globalMatchStore[id];
         if(!m) return;
         let sc = m.scoring;
-        let bestShort = getBestShortLeg(m.darts);
-        let slText = (bestShort >= 9 && bestShort <= 18) ? `<span style="color:#38bdf8; font-weight:bold;">${bestShort} Darts (Short Leg!)</span>` : (m.darts ? `${m.darts} Darts` : '—');
+        
+        // Hier werden ausschließlich Legs unter 19 Darts (< 19 Darts) gefiltert und angezeigt
+        let validShortLegs = getValidShortLegs(m.darts);
+        let bestShort = validShortLegs.length > 0 ? Math.min(...validShortLegs) : 99;
+        
+        let slText = (bestShort >= 9 && bestShort <= 18) ? `<span style="color:#38bdf8; font-weight:bold;">${bestShort} Darts (Short Leg!)</span>` : '<span style="color:#64748b;">—</span>';
+        let validLegsDisplay = validShortLegs.length > 0 ? validShortLegs.join(', ') + ' Darts' : '<span style="color:#64748b;">Keine unter 19 Darts</span>';
 
         document.getElementById("modalTitle").innerText = `${m.spieler} vs. ${m.gegner}`;
         document.getElementById("modalBody").innerHTML = `
@@ -655,7 +662,7 @@
             <div class="modal-section-title">Highlights & Details</div>
             <div style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
                 <div><b>Average:</b> <span style="color:#f59e0b;">${m.avg || '—'}</span></div>
-                <div><b>Darts pro Leg:</b> <span style="color:#fff;">${m.darts || '—'}</span></div>
+                <div><b>Gespielte Short Legs (< 19 Darts):</b> <span style="color:#fff;">${validLegsDisplay}</span></div>
                 <div><b>Bestes Short Leg:</b> ${slText}</div>
                 <div><b>High Finish:</b> <span style="color:#ec4899; font-weight:bold;">${sc.high_finish || '—'}</span></div>
                 <div><b>180er:</b> <span style="color:#f59e0b; font-weight:bold;">${sc.score_180 || 0}x</span></div>
