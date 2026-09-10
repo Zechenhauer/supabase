@@ -213,7 +213,7 @@
 
                 <div id="adminDashboard" style="display:none;">
                     <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; padding: 8px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: #4ade80; text-align: center;">
-                        ✓ Als Admin eingeloggt — Neuer Eintrag in Supabase
+                        ✓ Als Admin eingeloggt — Neuer Eintrag in Supabase (3. Mannschaft)
                     </div>
                     
                     <form id="newMatchForm" onsubmit="submitNewMatch(event)">
@@ -432,15 +432,16 @@
 
         try {
             document.getElementById("loadingMessage").style.display = "block";
+            // Umstellung auf spieltage_t3, matches_t3 und scoring_stats_t3
             const { data: spieltageData, error } = await supabaseClient
-                .from('spieltage')
-                .select(`*, matches (*, scoring_stats (*))`)
+                .from('spieltage_t3')
+                .select(`*, matches_t3 (*, scoring_stats_t3 (*))`)
                 .order('spieltag_nummer', { ascending: false });
 
             if (error) throw error;
 
             if (!spieltageData || spieltageData.length === 0) {
-                document.getElementById("loadingMessage").innerHTML = "⚠️ Keine Daten in Supabase vorhanden. Nutze den Admin-Login!";
+                document.getElementById("loadingMessage").innerHTML = "⚠️ Keine Daten in Supabase (spieltage_t3) vorhanden. Nutze den Admin-Login!";
                 if(btn) btn.textContent = "🔄 Aktualisieren";
                 return;
             }
@@ -453,6 +454,7 @@
         } catch (error) {
             console.error(error);
             document.getElementById("loadingMessage").innerHTML = "⚠️ Fehler beim Laden.";
+            if(btn) btn.textContent = "🔄 Aktualisieren";
         }
     }
 
@@ -489,13 +491,13 @@
             }
 
             let st = spieltageMap[sNum];
-            let matches = stRow.matches || [];
+            let matches = stRow.matches_t3 || [];
 
             matches.forEach(m => {
                 let blockName = m.block_name || "1. Block";
                 if (!st.bloecke[blockName]) st.bloecke[blockName] = [];
 
-                let scoring = (m.scoring_stats && m.scoring_stats.length > 0) ? m.scoring_stats[0] : { score_60: 0, score_80: 0, score_100: 0, score_140: 0, score_180: 0, high_finish: 0 };
+                let scoring = (m.scoring_stats_t3 && m.scoring_stats_t3.length > 0) ? m.scoring_stats_t3[0] : { score_60: 0, score_80: 0, score_100: 0, score_140: 0, score_180: 0, high_finish: 0 };
 
                 let matchObj = {
                     id: m.id, spieler: m.spieler_kapellen, gegner: m.gegner_name,
@@ -503,8 +505,8 @@
                 };
 
                 st.bloecke[blockName].push(matchObj);
-                let beteiligte = m.spieler_kapellen.split("/").map(s => s.trim());
-                beteiligigte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
+                let beteiligigte = m.spieler_kapellen.split("/").map(s => s.trim());
+                beteiligigigte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
 
                 let isDoppel = blockName.toLowerCase().includes("doppel") || m.spieler_kapellen.includes("/");
                 if (isDoppel) return;
@@ -516,7 +518,7 @@
                     if (p1 > p2) isWin = true; else if (p2 > p1) isLoss = true;
                 }
 
-                beteiligigte.forEach(subP => {
+                beteiligigigte.forEach(subP => {
                     let tk = singlePlayers.find(t => t.toLowerCase() === subP.toLowerCase());
                     if (tk) {
                         if (isWin) spielerStats[tk].siege++;
@@ -649,7 +651,6 @@
         if(!m) return;
         let sc = m.scoring;
         
-        // Hier werden ausschließlich Legs unter 19 Darts (< 19 Darts) gefiltert und angezeigt
         let validShortLegs = getValidShortLegs(m.darts);
         let bestShort = validShortLegs.length > 0 ? Math.min(...validShortLegs) : 99;
         
@@ -724,29 +725,30 @@
         let highFinish = parseInt(document.getElementById("highFinish").value) || 0;
 
         try {
-            let { data: existingSt } = await supabaseClient.from('spieltage').select('id').eq('spieltag_nummer', sNum).single();
+            // Schreiben in spieltage_t3, matches_t3 und scoring_stats_t3
+            let { data: existingSt } = await supabaseClient.from('spieltage_t3').select('id').eq('spieltag_nummer', sNum).single();
             let spieltagId;
             if (!existingSt) {
-                let { data: newSt, error: stErr } = await supabaseClient.from('spieltage').insert([{ spieltag_nummer: sNum, datum: datum, gegner_team: gegnerTeam, endergebnis: endstand }]).select().single();
+                let { data: newSt, error: stErr } = await supabaseClient.from('spieltage_t3').insert([{ spieltag_nummer: sNum, datum: datum, gegner_team: gegnerTeam, endergebnis: endstand }]).select().single();
                 if (stErr) throw stErr;
                 spieltagId = newSt.id;
             } else {
                 spieltagId = existingSt.id;
-                await supabaseClient.from('spieltage').update({ endergebnis: endstand, datum: datum, gegner_team: gegnerTeam }).eq('id', spieltagId);
+                await supabaseClient.from('spieltage_t3').update({ endergebnis: endstand, datum: datum, gegner_team: gegnerTeam }).eq('id', spieltagId);
             }
 
-            let { data: newMatch, error: mErr } = await supabaseClient.from('matches').insert([{
+            let { data: newMatch, error: mErr } = await supabaseClient.from('matches_t3').insert([{
                 spieltag_id: spieltagId, block_name: fullBlockName, spieler_kapellen: spielerKap,
                 gegner_name: gegnerName, ergebnis: ergebnis, avg: avg ? parseFloat(avg) : null, darts: darts
             }]).select().single();
             if (mErr) throw mErr;
 
-            let { error: sErr } = await supabaseClient.from('scoring_stats').insert([{
+            let { error: sErr } = await supabaseClient.from('scoring_stats_t3').insert([{
                 match_id: newMatch.id, score_60: s60, score_80: s80, score_100: s100, score_140: s140, score_180: s180, high_finish: highFinish
             }]);
             if (sErr) throw sErr;
 
-            alert("✓ Match & Scoring-Werte erfolgreich gespeichert!");
+            alert("✓ Match & Scoring-Werte erfolgreich für die 3. Mannschaft gespeichert!");
             document.getElementById("newMatchForm").reset();
             initAdminDropdowns();
             onBlockChanged();
