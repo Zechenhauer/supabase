@@ -62,8 +62,11 @@
     .spieltag-label { font-size: 12px; font-weight: bold; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
     
     .matchday-title-box { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 18px; font-weight: 800; flex-wrap: wrap; }
-    .team-badge { padding: 5px 12px; border-radius: 6px; font-weight: bold; color: #ffffff; }
-    .team-badge.neutral { background-color: #334155; color: #ffffff; }
+    
+    /* Team-Badges für den Spieltag-Kopf */
+    .team-badge { padding: 6px 14px; border-radius: 6px; font-weight: bold; color: #ffffff; background-color: #334155; border: 1px solid #475569; }
+    .team-badge.winner { background-color: rgba(22, 101, 52, 0.4); border: 2px solid #22c55e; color: #4ade80; }
+    
     .matchday-score { font-size: 22px; font-weight: 900; color: #f59e0b; background: #1e293b; padding: 4px 14px; border-radius: 8px; border: 1px solid #334155; }
 
     .matchday-photo-section { background: #111827; padding: 15px; text-align: center; border-top: 1px solid #334155; }
@@ -235,7 +238,7 @@
                             </div>
                             <div class="admin-form-group">
                                 <label>Endstand Team (Gesamtergebnis)</label>
-                                <input type="text" id="newEndstand" placeholder="z.B. 6:4">
+                                <input type="text" id="newEndstand" placeholder="z.B. 15:5">
                             </div>
                         </div>
 
@@ -454,7 +457,6 @@
         }
     }
 
-    // Hilfsfunktion: Berechnet das kleinste Shortleg im Bereich von 9 bis 18 Darts
     function getBestShortLeg(dartsStr) {
         if (!dartsStr) return 99;
         let parts = dartsStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
@@ -587,7 +589,33 @@
         Object.keys(map).sort((a,b) => b - a).forEach(key => {
             let st = map[key];
             navLinks.innerHTML += `<a href="#spieltag-${st.nummer}">Spieltag ${st.nummer}</a>`;
-            let cardHtml = `<div class="card" id="spieltag-${st.nummer}"><div class="card-header"><div class="spieltag-label">SPIELTAG ${st.nummer} • ${st.datum}</div><div class="matchday-title-box"><span class="team-badge neutral">TV Kapellen 3</span><span class="matchday-score">${st.endergebnis || '-:-'}</span><span class="team-badge neutral">${st.gegnerTeam}</span></div></div>`;
+
+            // Gesamtergebnis prüfen (z.B. "15:5")
+            let kapScore = 0, gegnerScore = 0;
+            if (st.endergebnis && st.endergebnis.includes(":")) {
+                let parts = st.endergebnis.split(":");
+                kapScore = parseInt(parts[0]) || 0;
+                gegnerScore = parseInt(parts[1]) || 0;
+            }
+
+            let kapBadgeClass = "team-badge neutral";
+            let gegnerBadgeClass = "team-badge neutral";
+
+            if (kapScore > gegnerScore) {
+                kapBadgeClass = "team-badge winner";
+            } else if (gegnerScore > kapScore) {
+                gegnerBadgeClass = "team-badge winner";
+            }
+
+            let cardHtml = `<div class="card" id="spieltag-${st.nummer}">
+                <div class="card-header">
+                    <div class="spieltag-label">SPIELTAG ${st.nummer} • ${st.datum}</div>
+                    <div class="matchday-title-box">
+                        <span class="${kapBadgeClass}">TV Kapellen 3</span>
+                        <span class="matchday-score">${st.endergebnis || '-:-'}</span>
+                        <span class="${gegnerBadgeClass}">${st.gegnerTeam}</span>
+                    </div>
+                </div>`;
 
             let counter = 1;
             Object.keys(st.bloecke).forEach(bTitle => {
