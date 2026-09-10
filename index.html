@@ -17,44 +17,24 @@
     }
     .container { max-width: 1200px; margin: 0 auto; position: relative; }
     
-    .app-main-header {
-        text-align: center;
-        margin-bottom: 20px;
-        position: relative;
-    }
-    .header-title-row {
-        display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 4px; width: 100%;
-    }
-    .header-logo {
-        width: 55px; height: 55px; border-radius: 50%; object-fit: contain;
-        border: 2px solid #f59e0b; background: #0f172a; box-shadow: 0 4px 10px rgba(0,0,0,0.3); padding: 4px; flex-shrink: 0;
-    }
-    .app-main-header h1 {
-        color: #f59e0b; font-size: 26px; font-weight: 900; margin: 0; letter-spacing: 1px; text-transform: uppercase;
-    }
+    .app-main-header { text-align: center; margin-bottom: 20px; position: relative; }
+    .header-title-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 4px; width: 100%; }
+    .header-logo { width: 55px; height: 55px; border-radius: 50%; object-fit: contain; border: 2px solid #f59e0b; background: #0f172a; box-shadow: 0 4px 10px rgba(0,0,0,0.3); padding: 4px; flex-shrink: 0; }
+    .app-main-header h1 { color: #f59e0b; font-size: 26px; font-weight: 900; margin: 0; letter-spacing: 1px; text-transform: uppercase; }
     .app-main-header .app-subtitle { color: #94a3b8; font-size: 13px; font-weight: 600; margin-top: 4px; }
 
     .top-controls { position: absolute; top: 0; right: 0; display: flex; gap: 8px; }
-    .action-btn {
-        background: transparent; border: 1px solid #f59e0b; color: #f59e0b; padding: 8px 14px;
-        border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s ease;
-    }
+    .action-btn { background: transparent; border: 1px solid #f59e0b; color: #f59e0b; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
     .action-btn:hover { background: #f59e0b; color: #0f172a; }
     .action-btn.admin-btn { border-color: #38bdf8; color: #38bdf8; }
     .action-btn.admin-btn:hover { background: #38bdf8; color: #0f172a; }
 
     .back-nav { margin-bottom: 15px; }
-    .back-btn {
-        display: inline-flex; align-items: center; gap: 8px; background: #1e293b; color: #f59e0b;
-        text-decoration: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; border: 1px solid #f59e0b;
-    }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: #1e293b; color: #f59e0b; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 13px; border: 1px solid #f59e0b; }
     .back-btn:hover { background: #f59e0b; color: #0f172a; }
 
     .search-wrapper { position: sticky; top: 15px; z-index: 90; margin-bottom: 25px; display: flex; justify-content: center; }
-    .search-box-input {
-        width: 100%; max-width: 500px; padding: 12px 24px; font-size: 14px; background-color: #1e293b;
-        color: #ffffff; border: 2px solid #f59e0b; border-radius: 25px; outline: none; text-align: center;
-    }
+    .search-box-input { width: 100%; max-width: 500px; padding: 12px 24px; font-size: 14px; background-color: #1e293b; color: #ffffff; border: 2px solid #f59e0b; border-radius: 25px; outline: none; text-align: center; }
 
     .dashboard-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 20px; margin-bottom: 35px; }
     @media (max-width: 950px) { .dashboard-grid { grid-template-columns: 1fr; } .top-controls { position: static; justify-content: center; margin-top: 10px; display: flex; } }
@@ -236,26 +216,31 @@
                     </div>
                     
                     <form id="newMatchForm" onsubmit="submitNewMatch(event)">
-                        <div class="admin-grid-3">
+                        <div class="admin-grid-2">
                             <div class="admin-form-group">
-                                <label>Spieltag Nr.</label>
-                                <input type="number" id="newSpieltagNum" required placeholder="1" oninput="checkExistingSpieltag()">
+                                <label>Datum auswählen</label>
+                                <select id="newDatumSelect" onchange="onDateSelected()">
+                                    <!-- Wird per JavaScript befüllt -->
+                                </select>
                             </div>
                             <div class="admin-form-group">
-                                <label>Datum</label>
-                                <input type="text" id="newDatum" placeholder="08.08.2026">
-                            </div>
-                            <div class="admin-form-group">
-                                <label>Endstand Team</label>
-                                <input type="text" id="newEndstand" placeholder="6:4">
+                                <label>Gegner Mannschaft</label>
+                                <input type="text" id="newGegnerTeam" readonly style="background:#111827; color:#f59e0b; font-weight:bold;">
                             </div>
                         </div>
 
                         <div class="admin-grid-2">
                             <div class="admin-form-group">
-                                <label>Gegner Mannschaft</label>
-                                <input type="text" id="newGegnerTeam" required placeholder="Gegner Team">
+                                <label>Spieltag Nr.</label>
+                                <input type="number" id="newSpieltagNum" readonly style="background:#111827; color:#34d399; font-weight:bold;">
                             </div>
+                            <div class="admin-form-group">
+                                <label>Endstand Team (Gesamtergebnis)</label>
+                                <input type="text" id="newEndstand" placeholder="z.B. 6:4">
+                            </div>
+                        </div>
+
+                        <div class="admin-grid-2">
                             <div class="admin-form-group">
                                 <label>Block</label>
                                 <select id="newBlockName">
@@ -264,27 +249,19 @@
                                     <option value="2. Block - Einzel (9-16)">2. Block - Einzel (9-16)</option>
                                 </select>
                             </div>
-                        </div>
-
-                        <div class="admin-grid-2">
                             <div class="admin-form-group">
                                 <label>Spieler Kapellen</label>
                                 <select id="newSpielerKap">
-                                    <option value="Jürgen Schützendorf">Jürgen Schützendorf</option>
-                                    <option value="Ludger Schledorn">Ludger Schledorn</option>
-                                    <option value="Markus Lenz">Markus Lenz</option>
-                                    <option value="Niklas Weichert">Niklas Weichert</option>
-                                    <option value="Andreas Denner">Andreas Denner</option>
-                                    <option value="Markus Ginsel">Markus Ginsel</option>
-                                    <option value="Michael Müller">Michael Müller</option>
-                                    <option value="Florian Hartwich">Florian Hartwich</option>
-                                    <option value="Lars Neutag">Lars Neutag</option>
+                                    <!-- Wird per JavaScript aus singlePlayers gefüllt -->
                                 </select>
                             </div>
-                            <div class="admin-form-group">
-                                <label>Gegner Name</label>
-                                <input type="text" id="newGegnerName" required placeholder="Gegner Name">
-                            </div>
+                        </div>
+
+                        <div class="admin-form-group">
+                            <label>Gegner Name</label>
+                            <select id="newGegnerName">
+                                <!-- Passender Kader des Gegners -->
+                            </select>
                         </div>
 
                         <div class="modal-section-title">Spieldaten</div>
@@ -329,16 +306,97 @@
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const teamKader = [
-        "Jürgen Schützendorf", "Ludger Schledorn", "Markus Lenz", 
-        "Niklas Weichert", "Andreas Denner", "Markus Ginsel", 
-        "Michael Müller", "Florian Hartwich", "Lars Neutag",
-        "Thomas Kliver", "Wolfram Senger", "Yannick Steffes", "Leon Gerber", "Gregor Marek"
+    // Euer eigener Kader (TV Kapellen 3)
+    const singlePlayers = [
+        "Jürgen Schützendorf", "Markus Ginsel", "Lars Neutag", "Ludger Schledorn", "Leon Gerber", "Gregor Marek", "Andreas Denner", "Niklas Weichert", "Markus Lenz", "Thomas Kliver", "Wolfram Senger", "Michael Müller", "Florian Hartwich", "Yannick Steffes"
     ];
 
-    let globalSpieltageCache = {};
+    const schedule = {
+        "2026-09-05": "TV Kapellen 1919 e.V. 2",
+        "2026-09-18": "DSC Goch 3",
+        "2026-09-25": "Rumelner TV 3",
+        "2026-10-10": "DSC Goch 4",
+        "2026-10-23": "Triple Inn Issum 2",
+        "2026-11-07": "SV Menzelen 1925",
+        "2026-11-13": "Die Wardter Darter",
+        "2026-11-27": "The Red Lions Xanten 1",
+        "2027-01-09": "Hart am Draht",
+        "2027-01-22": "TV Kapellen 1919 e.V. 2",
+        "2027-02-06": "DSC Goch 3",
+        "2027-02-19": "Rumelner TV 3",
+        "2027-03-05": "DSC Goch 4",
+        "2027-03-13": "Triple Inn Issum 2",
+        "2027-04-02": "SV Menzelen 1925",
+        "2027-04-24": "Die Wardter Darter",
+        "2027-05-08": "The Red Lions Xanten 1",
+        "2027-05-14": "Hart am Draht"
+    };
 
-    document.addEventListener("DOMContentLoaded", loadDataFromSupabase);
+    const opponentRosters = {
+        "DSC Goch 3": ["Lucas Keisers", "Patryk Tajdus", "Juri Lambert", "Jannik Lommen", "Manfred Michels", "Xavier Tomalla", "Björn Janssen", "Antoni Rolniczak", "Jonas Neiling", "Tim Knops", "Sven Stiebing", "Lennart Upmeyer", "Lukas Kerst", "Sebastian Wouters", "Linus Kerst", "Michael Loock"],
+        "DSC Goch 4": ["Jens Robert Michels", "Ben Schweidler", "Patrick Thellmann", "Andreas Geurtsen", "Alexander Schmidt", "Mario van Elst", "Melanie Zwanziger", "Kevin van Elst", "Tobias Klamp", "Hans Günther Seidl", "Marco Hofkens", "Maximilian Henn", "Jörg Hillmann", "Michael Schweidler", "Hans-Jürgen Otto", "Adrian Hoppe", "Justus Kilzer", "Holger Stayen", "Niklas Krämer"],
+        "Die Wardter Darter": ["Alexander Reis", "Narayan Amanupunnjo", "Marvin Loth", "Ralf Graumann", "Christian Dederle", "Daniel Venhoff", "Marius Bußmann", "Rainer Staymann", "Martin Wegner", "Timo von Scheidt", "André Kaufels"],
+        "Hart am Draht": ["Ann-Kathrin Brugmann", "Justin Schraven", "Leandro Wessiepe", "Pierre Lohmann", "Marius Hergesell", "Kevin Haßheider", "Henning Felder", "Annkathrin Wanders", "Saskia Husmann", "Benjamin Borgards", "Philipp-Sascha Brugmann", "Stefan Borgards", "Marco Inghilleri", "Melanie Bendriss", "Manuela Weis", "Robin Weis", "Michael Ganther", "Thomas Zygar"],
+        "Rumelner TV 3": ["Michaela von Dahlen", "Christian Krause", "Stefan Eilbrecht", "Sebastian Pohl", "Pierre von Dahlen", "Marvin Fünfstück", "Valentin De Spirt", "Alexander Wahl", "Melanie Drees", "Mike Küffen", "Sam von Dahlen", "Sascha Schütte"],
+        "SV Menzelen 1925": ["Iris Reimer", "Julian Keisers", "Erich Janik", "Martin Haberstroh", "Johannes Wynen", "Thomas Kiwitt", "Robert Giesen", "Christoph Luschgy", "Tanja Wynen", "Sven Krams", "Stephan Kempkes", "Daniel Kempkes", "Markus Reimer"],
+        "TV Kapellen 1919 e.V. 2": ["Philip Möller", "Markus Thiele", "Danny Voß", "Andre Pogoda", "Florian Weindorf", "Daniel Simanowitz", "Christian Schreiber", "Dominik Herz", "Markus Elgersma", "Holger Weberpold", "Thomas Franzen"],
+        "The Red Lions Xanten 1": ["Sebastian ALosery", "Jan Pötters", "Stephan Reintges", "Raphael Wefers", "Kai Maas", "Dustin Stenzel", "Tobias Reintges", "Björn Hesse"],
+        "Triple Inn Issum 2": ["Lukas Helmes", "Sarah Hillejan", "Simon Hillejan", "Thomas Liebenow", "Marcel Angenendt", "Hans-Willi Hollick", "Joshua Jäschke", "Stefan Hanauer", "Michael Heinen", "Stefan Klein", "Christoph Passens", "Karl-Heinz Grimm", "Daniel Moschüring", "Michael Delbeck", "Sascha Rudies"]
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        loadDataFromSupabase();
+        initAdminDropdowns();
+    });
+
+    function initAdminDropdowns() {
+        // Datum Dropdown befüllen
+        let dateSelect = document.getElementById("newDatumSelect");
+        dateSelect.innerHTML = "";
+        let index = 1;
+        for (let [date, opponent] of Object.entries(schedule)) {
+            let opt = document.createElement("option");
+            opt.value = date;
+            opt.text = `Spieltag ${index} (${date}) - vs. ${opponent}`;
+            opt.setAttribute("data-spieltag", index);
+            opt.setAttribute("data-opponent", opponent);
+            dateSelect.appendChild(opt);
+            index++;
+        }
+
+        // Eigenen Kader in Select füllen
+        let kapSelect = document.getElementById("newSpielerKap");
+        kapSelect.innerHTML = "";
+        singlePlayers.forEach(p => {
+            let opt = document.createElement("option");
+            opt.value = p; opt.text = p;
+            kapSelect.appendChild(opt);
+        });
+
+        onDateSelected();
+    }
+
+    function onDateSelected() {
+        let dateSelect = document.getElementById("newDatumSelect");
+        let selectedOpt = dateSelect.options[dateSelect.selectedIndex];
+        if (!selectedOpt) return;
+
+        let spieltagNum = selectedOpt.getAttribute("data-spieltag");
+        let opponentTeam = selectedOpt.getAttribute("data-opponent");
+
+        document.getElementById("newSpieltagNum").value = spieltagNum;
+        document.getElementById("newGegnerTeam").value = opponentTeam;
+
+        // Gegner-Kader für dieses Team laden
+        let gegnerNameSelect = document.getElementById("newGegnerName");
+        gegnerNameSelect.innerHTML = "";
+        let roster = opponentRosters[opponentTeam] || [];
+        roster.forEach(p => {
+            let opt = document.createElement("option");
+            opt.value = p; opt.text = p;
+            gegnerNameSelect.appendChild(opt);
+        });
+    }
 
     async function loadDataFromSupabase() {
         const btn = document.getElementById("refreshBtn");
@@ -359,11 +417,6 @@
                 return;
             }
 
-            globalSpieltageCache = {};
-            spieltageData.forEach(st => {
-                globalSpieltageCache[st.spieltag_nummer] = st;
-            });
-
             processSupabaseData(spieltageData);
             document.getElementById("loadingMessage").style.display = "none";
             document.getElementById("statsGrid").style.display = "grid";
@@ -375,22 +428,11 @@
         }
     }
 
-    // Automatisch Daten laden, wenn man die Spieltag-Nummer einträgt
-    function checkExistingSpieltag() {
-        let sNum = document.getElementById("newSpieltagNum").value;
-        if(globalSpieltageCache[sNum]) {
-            let st = globalSpieltageCache[sNum];
-            if(st.datum) document.getElementById("newDatum").value = st.datum;
-            if(st.gegner_team) document.getElementById("newGegnerTeam").value = st.gegner_team;
-            if(st.endergebnis) document.getElementById("newEndstand").value = st.endergebnis;
-        }
-    }
-
     function processSupabaseData(spieltageRows) {
         let spieltageMap = {};
         let spielerStats = {};
         
-        teamKader.forEach(p => {
+        singlePlayers.forEach(p => {
             spielerStats[p] = { 
                 siege: 0, niederlagen: 0, count140: 0, hunderteachtziger: 0, topFinish: 0,
                 s60: 0, s80: 0, s100: 0 
@@ -434,7 +476,7 @@
                 }
 
                 beteiligte.forEach(subP => {
-                    let tk = teamKader.find(t => t.toLowerCase() === subP.toLowerCase());
+                    let tk = singlePlayers.find(t => t.toLowerCase() === subP.toLowerCase());
                     if (tk) {
                         if (isWin) spielerStats[tk].siege++;
                         if (isLoss) spielerStats[tk].niederlagen++;
@@ -454,7 +496,7 @@
     }
 
     function renderHighlightsTable(stats) {
-        let sorted = teamKader.map(name => ({ name, ...stats[name] })).sort((a,b) => b.siege - a.siege);
+        let sorted = singlePlayers.map(name => ({ name, ...stats[name] })).sort((a,b) => b.siege - a.siege);
         let tbody = document.getElementById("highlightsTableBody");
         tbody.innerHTML = "";
         sorted.forEach((p, idx) => {
@@ -472,7 +514,7 @@
     }
 
     function renderScoringTable(stats) {
-        let sorted = teamKader.map(name => ({ name, ...stats[name], total: stats[name].s60 + stats[name].s80 + stats[name].s100 + stats[name].count140 })).sort((a,b) => b.total - a.total);
+        let sorted = singlePlayers.map(name => ({ name, ...stats[name], total: stats[name].s60 + stats[name].s80 + stats[name].s100 + stats[name].count140 })).sort((a,b) => b.total - a.total);
         let tbody = document.getElementById("scoringTableBody");
         tbody.innerHTML = "";
         sorted.forEach((p, idx) => {
@@ -540,10 +582,13 @@
 
     async function submitNewMatch(event) {
         event.preventDefault();
-        let sNum = parseInt(document.getElementById("newSpieltagNum").value);
-        let datum = document.getElementById("newDatum").value;
+        let dateSelect = document.getElementById("newDatumSelect");
+        let selectedOpt = dateSelect.options[dateSelect.selectedIndex];
+        let sNum = parseInt(selectedOpt.getAttribute("data-spieltag"));
+        let datum = dateSelect.value;
+        let gegnerTeam = selectedOpt.getAttribute("data-opponent");
+
         let endstand = document.getElementById("newEndstand").value;
-        let gegnerTeam = document.getElementById("newGegnerTeam").value;
         let blockName = document.getElementById("newBlockName").value;
         let spielerKap = document.getElementById("newSpielerKap").value;
         let gegnerName = document.getElementById("newGegnerName").value;
@@ -581,6 +626,7 @@
 
             alert("✓ Match & Scoring-Werte erfolgreich gespeichert!");
             document.getElementById("newMatchForm").reset();
+            initAdminDropdowns();
             closeAdminModal();
             loadDataFromSupabase();
         } catch (err) {
