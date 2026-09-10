@@ -250,9 +250,7 @@
                             </div>
                             <div class="admin-form-group">
                                 <label>Partie-Nummer im Block</label>
-                                <select id="newPartieNum">
-                                    <!-- Wird dynamisch 1-8 oder 1-4 -->
-                                </select>
+                                <select id="newPartieNum"></select>
                             </div>
                         </div>
 
@@ -289,8 +287,8 @@
                                 <input type="number" step="0.01" id="newAvg" placeholder="0.00">
                             </div>
                             <div class="admin-form-group">
-                                <label>Darts (für Short Leg)</label>
-                                <input type="number" id="newDarts" placeholder="z.B. 15">
+                                <label>Darts pro Leg (z.B. 32,25,18)</label>
+                                <input type="text" id="newDarts" placeholder="32,25,18">
                             </div>
                         </div>
 
@@ -395,11 +393,9 @@
         let block = document.getElementById("newBlockName").value;
         let isDoppel = block.toLowerCase().includes("doppel");
         
-        // Felder für 2. Spieler im Doppel ein-/ausblenden
         document.getElementById("groupSpieler2").style.display = isDoppel ? "block" : "none";
         document.getElementById("groupGegner2").style.display = isDoppel ? "block" : "none";
 
-        // Partie-Nummern Dropdown anpassen (1-8 für Einzel, 1-4 für Doppel)
         let partieSelect = document.getElementById("newPartieNum");
         partieSelect.innerHTML = "";
         let maxPartien = isDoppel ? 4 : 8;
@@ -458,6 +454,15 @@
         }
     }
 
+    // Hilfsfunktion: Berechnet das kleinste Shortleg im Bereich von 9 bis 18 Darts
+    function getBestShortLeg(dartsStr) {
+        if (!dartsStr) return 99;
+        let parts = dartsStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+        let validLegs = parts.filter(d => d >= 9 && d <= 18);
+        if (validLegs.length === 0) return 99;
+        return Math.min(...validLegs);
+    }
+
     function processSupabaseData(spieltageRows) {
         let spieltageMap = {};
         let spielerStats = {};
@@ -485,18 +490,17 @@
                 let blockName = m.block_name || "1. Block";
                 if (!st.bloecke[blockName]) st.bloecke[blockName] = [];
 
-                let scoring = (m.scoring_stats && m.scoring_stats.length > 0) ? m.scoring_stats[0] : { score_60: 0, score_80: 0, score_100: 0, score_140: 0, score_180: 0, high_finish: 0, darts: 0 };
+                let scoring = (m.scoring_stats && m.scoring_stats.length > 0) ? m.scoring_stats[0] : { score_60: 0, score_80: 0, score_100: 0, score_140: 0, score_180: 0, high_finish: 0 };
 
                 let matchObj = {
                     id: m.id, spieler: m.spieler_kapellen, gegner: m.gegner_name,
-                    ergebnis: m.ergebnis || "-:-", avg: m.avg || "", scoring: scoring, darts: m.darts || 0
+                    ergebnis: m.ergebnis || "-:-", avg: m.avg || "", scoring: scoring, darts: m.darts || ""
                 };
 
                 st.bloecke[blockName].push(matchObj);
                 let beteiligte = m.spieler_kapellen.split("/").map(s => s.trim());
                 beteiligte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
 
-                // DOPPEL AUS EINZEL-STATISTIK AUSSCHLIESSEN
                 let isDoppel = blockName.toLowerCase().includes("doppel") || m.spieler_kapellen.includes("/");
                 if (isDoppel) return;
 
@@ -521,9 +525,9 @@
                         let hf = scoring.high_finish || 0;
                         if (hf > spielerStats[tk].topFinish) spielerStats[tk].topFinish = hf;
 
-                        let d = m.darts || 0;
-                        if (d >= 9 && d <= 19 && d < spielerStats[tk].bestLeg) {
-                            spielerStats[tk].bestLeg = d;
+                        let bestThisMatch = getBestShortLeg(m.darts);
+                        if (bestThisMatch < spielerStats[tk].bestLeg) {
+                            spielerStats[tk].bestLeg = bestThisMatch;
                         }
                     }
                 });
@@ -540,7 +544,7 @@
         let tbody = document.getElementById("highlightsTableBody");
         tbody.innerHTML = "";
         sorted.forEach((p, idx) => {
-            let slDisplay = (p.bestLeg >= 9 && p.bestLeg <= 19) ? `<span style="background:#0284c7; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">${p.bestLeg}</span>` : '<span style="color:#64748b;">—</span>';
+            let slDisplay = (p.bestLeg >= 9 && p.bestLeg <= 18) ? `<span style="background:#0284c7; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">${p.bestLeg}</span>` : '<span style="color:#64748b;">—</span>';
             let hfDisplay = p.topFinish > 0 ? `<span style="background:#ec4899; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">${p.topFinish}</span>` : '<span style="color:#64748b;">—</span>';
 
             tbody.innerHTML += `
@@ -614,7 +618,8 @@
         let m = globalMatchStore[id];
         if(!m) return;
         let sc = m.scoring;
-        let slText = (m.darts >= 9 && m.darts <= 19) ? `<span style="color:#38bdf8; font-weight:bold;">${m.darts} Darts (Short Leg!)</span>` : (m.darts > 0 ? `${m.darts} Darts` : '—');
+        let bestShort = getBestShortLeg(m.darts);
+        let slText = (bestShort >= 9 && bestShort <= 18) ? `<span style="color:#38bdf8; font-weight:bold;">${bestShort} Darts (Short Leg!)</span>` : (m.darts ? `${m.darts} Darts` : '—');
 
         document.getElementById("modalTitle").innerText = `${m.spieler} vs. ${m.gegner}`;
         document.getElementById("modalBody").innerHTML = `
@@ -622,7 +627,8 @@
             <div class="modal-section-title">Highlights & Details</div>
             <div style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
                 <div><b>Average:</b> <span style="color:#f59e0b;">${m.avg || '—'}</span></div>
-                <div><b>Short Leg:</b> ${slText}</div>
+                <div><b>Darts pro Leg:</b> <span style="color:#fff;">${m.darts || '—'}</span></div>
+                <div><b>Bestes Short Leg:</b> ${slText}</div>
                 <div><b>High Finish:</b> <span style="color:#ec4899; font-weight:bold;">${sc.high_finish || '—'}</span></div>
                 <div><b>180er:</b> <span style="color:#f59e0b; font-weight:bold;">${sc.score_180 || 0}x</span></div>
                 <div style="margin-top: 8px; font-size: 11px; color:#94a3b8;">Scores: 60+ (${sc.score_60}) | 80+ (${sc.score_80}) | 100+ (${sc.score_100}) | 140+ (${sc.score_140})</div>
@@ -673,7 +679,7 @@
         let fullBlockName = `${blockName} (${partieNum})`;
         let ergebnis = document.getElementById("newErgebnis").value;
         let avg = document.getElementById("newAvg").value;
-        let darts = parseInt(document.getElementById("newDarts").value) || null;
+        let darts = document.getElementById("newDarts").value.trim();
 
         let s60 = parseInt(document.getElementById("score60").value) || 0;
         let s80 = parseInt(document.getElementById("score80").value) || 0;
