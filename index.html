@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saisonübersicht 3. Mannschaft — TV Kapellen 1919 e.V. (Supabase)</title>
-    <!-- Supabase JavaScript Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
     * { box-sizing: border-box; }
@@ -220,7 +219,7 @@
                             <div class="admin-form-group">
                                 <label>Datum auswählen</label>
                                 <select id="newDatumSelect" onchange="onDateSelected()">
-                                    <!-- Wird per JavaScript befüllt -->
+                                    <!-- Wird per JS befüllt -->
                                 </select>
                             </div>
                             <div class="admin-form-group">
@@ -243,25 +242,32 @@
                         <div class="admin-grid-2">
                             <div class="admin-form-group">
                                 <label>Block</label>
-                                <select id="newBlockName">
+                                <select id="newBlockName" onchange="toggleDoppelFields()">
                                     <option value="1. Block - Einzel (1-8)">1. Block - Einzel (1-8)</option>
                                     <option value="Doppel">Doppel</option>
                                     <option value="2. Block - Einzel (9-16)">2. Block - Einzel (9-16)</option>
                                 </select>
                             </div>
-                            <div class="admin-form-group">
-                                <label>Spieler Kapellen</label>
-                                <select id="newSpielerKap">
-                                    <!-- Wird per JavaScript aus singlePlayers gefüllt -->
-                                </select>
+                            <div class="admin-form-group" id="groupSpieler1">
+                                <label>Spieler Kapellen 1</label>
+                                <select id="newSpielerKap1"></select>
                             </div>
                         </div>
 
-                        <div class="admin-form-group">
+                        <div class="admin-grid-2" id="groupSpieler2" style="display:none;">
+                            <div class="admin-form-group">
+                                <label>Spieler Kapellen 2 (Doppelpartner)</label>
+                                <select id="newSpielerKap2"></select>
+                            </div>
+                            <div class="admin-form-group">
+                                <label>Gegner Name 2 (Doppelpartner)</label>
+                                <select id="newGegnerName2"></select>
+                            </div>
+                        </div>
+
+                        <div class="admin-form-group" id="groupGegner1">
                             <label>Gegner Name</label>
-                            <select id="newGegnerName">
-                                <!-- Passender Kader des Gegners -->
-                            </select>
+                            <select id="newGegnerName1"></select>
                         </div>
 
                         <div class="modal-section-title">Spieldaten</div>
@@ -275,8 +281,8 @@
                                 <input type="number" step="0.01" id="newAvg" placeholder="0.00">
                             </div>
                             <div class="admin-form-group">
-                                <label>Darts</label>
-                                <input type="number" id="newDarts" placeholder="0">
+                                <label>Darts (für Short Leg)</label>
+                                <input type="number" id="newDarts" placeholder="z.B. 15">
                             </div>
                         </div>
 
@@ -306,7 +312,6 @@
 
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Euer eigener Kader (TV Kapellen 3)
     const singlePlayers = [
         "Jürgen Schützendorf", "Markus Ginsel", "Lars Neutag", "Ludger Schledorn", "Leon Gerber", "Gregor Marek", "Andreas Denner", "Niklas Weichert", "Markus Lenz", "Thomas Kliver", "Wolfram Senger", "Michael Müller", "Florian Hartwich", "Yannick Steffes"
     ];
@@ -350,7 +355,6 @@
     });
 
     function initAdminDropdowns() {
-        // Datum Dropdown befüllen
         let dateSelect = document.getElementById("newDatumSelect");
         dateSelect.innerHTML = "";
         let index = 1;
@@ -364,16 +368,24 @@
             index++;
         }
 
-        // Eigenen Kader in Select füllen
-        let kapSelect = document.getElementById("newSpielerKap");
-        kapSelect.innerHTML = "";
-        singlePlayers.forEach(p => {
-            let opt = document.createElement("option");
-            opt.value = p; opt.text = p;
-            kapSelect.appendChild(opt);
-        });
-
+        fillPlayerDropdowns();
         onDateSelected();
+    }
+
+    function fillPlayerDropdowns() {
+        let kap1 = document.getElementById("newSpielerKap1");
+        let kap2 = document.getElementById("newSpielerKap2");
+        kap1.innerHTML = ""; kap2.innerHTML = "";
+        singlePlayers.forEach(p => {
+            kap1.innerHTML += `<option value="${p}">${p}</option>`;
+            kap2.innerHTML += `<option value="${p}">${p}</option>`;
+        });
+    }
+
+    function toggleDoppelFields() {
+        let block = document.getElementById("newBlockName").value;
+        let isDoppel = block.toLowerCase().includes("doppel");
+        document.getElementById("groupSpieler2").style.display = isDoppel ? "grid" : "none";
     }
 
     function onDateSelected() {
@@ -381,20 +393,17 @@
         let selectedOpt = dateSelect.options[dateSelect.selectedIndex];
         if (!selectedOpt) return;
 
-        let spieltagNum = selectedOpt.getAttribute("data-spieltag");
+        document.getElementById("newSpieltagNum").value = selectedOpt.getAttribute("data-spieltag");
         let opponentTeam = selectedOpt.getAttribute("data-opponent");
-
-        document.getElementById("newSpieltagNum").value = spieltagNum;
         document.getElementById("newGegnerTeam").value = opponentTeam;
 
-        // Gegner-Kader für dieses Team laden
-        let gegnerNameSelect = document.getElementById("newGegnerName");
-        gegnerNameSelect.innerHTML = "";
+        let g1 = document.getElementById("newGegnerName1");
+        let g2 = document.getElementById("newGegnerName2");
+        g1.innerHTML = ""; g2.innerHTML = "";
         let roster = opponentRosters[opponentTeam] || [];
         roster.forEach(p => {
-            let opt = document.createElement("option");
-            opt.value = p; opt.text = p;
-            gegnerNameSelect.appendChild(opt);
+            g1.innerHTML += `<option value="${p}">${p}</option>`;
+            g2.innerHTML += `<option value="${p}">${p}</option>`;
         });
     }
 
@@ -434,7 +443,7 @@
         
         singlePlayers.forEach(p => {
             spielerStats[p] = { 
-                siege: 0, niederlagen: 0, count140: 0, hunderteachtziger: 0, topFinish: 0,
+                siege: 0, niederlagen: 0, count140: 0, hunderteachtziger: 0, topFinish: 0, bestLeg: 99,
                 s60: 0, s80: 0, s100: 0 
             };
         });
@@ -455,18 +464,20 @@
                 let blockName = m.block_name || "1. Block";
                 if (!st.bloecke[blockName]) st.bloecke[blockName] = [];
 
-                let scoring = (m.scoring_stats && m.scoring_stats.length > 0) ? m.scoring_stats[0] : { score_60: 0, score_80: 0, score_100: 0, score_140: 0, score_180: 0 };
+                let scoring = (m.scoring_stats && m.scoring_stats.length > 0) ? m.scoring_stats[0] : { score_60: 0, score_80: 0, score_100: 0, score_140: 0, score_180: 0, high_finish: 0, darts: 0 };
 
                 let matchObj = {
                     id: m.id, spieler: m.spieler_kapellen, gegner: m.gegner_name,
-                    ergebnis: m.ergebnis || "-:-", avg: m.avg || "", scoring: scoring
+                    ergebnis: m.ergebnis || "-:-", avg: m.avg || "", scoring: scoring, darts: m.darts || 0
                 };
 
                 st.bloecke[blockName].push(matchObj);
                 let beteiligte = m.spieler_kapellen.split("/").map(s => s.trim());
                 beteiligte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
 
-                if (blockName.toLowerCase().includes("doppel") || m.spieler_kapellen.includes("/")) return;
+                // DOPPEL AUS EINZEL-STATISTIK AUSSCHLIESSEN
+                let isDoppel = blockName.toLowerCase().includes("doppel") || m.spieler_kapellen.includes("/");
+                if (isDoppel) return;
 
                 let isWin = false, isLoss = false;
                 if (m.ergebnis && m.ergebnis.includes(":")) {
@@ -485,6 +496,14 @@
                         spielerStats[tk].s80 += (scoring.score_80 || 0);
                         spielerStats[tk].s100 += (scoring.score_100 || 0);
                         spielerStats[tk].hunderteachtziger += (scoring.score_180 || 0);
+                        
+                        let hf = scoring.high_finish || 0;
+                        if (hf > spielerStats[tk].topFinish) spielerStats[tk].topFinish = hf;
+
+                        let d = m.darts || 0;
+                        if (d >= 9 && d <= 19 && d < spielerStats[tk].bestLeg) {
+                            spielerStats[tk].bestLeg = d;
+                        }
                     }
                 });
             });
@@ -500,6 +519,9 @@
         let tbody = document.getElementById("highlightsTableBody");
         tbody.innerHTML = "";
         sorted.forEach((p, idx) => {
+            let slDisplay = (p.bestLeg >= 9 && p.bestLeg <= 19) ? `<span style="background:#0284c7; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">${p.bestLeg}</span>` : '<span style="color:#64748b;">—</span>';
+            let hfDisplay = p.topFinish > 0 ? `<span style="background:#ec4899; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">${p.topFinish}</span>` : '<span style="color:#64748b;">—</span>';
+
             tbody.innerHTML += `
                 <tr class="hl-player-row" data-player-name="${p.name.toLowerCase()}">
                     <td style="text-align: center; color: #f59e0b; font-weight:bold;">${idx + 1}</td>
@@ -507,8 +529,8 @@
                     <td style="text-align: center; color: #34d399; font-weight: bold;">${p.siege}</td>
                     <td style="text-align: center; color: #f87171; font-weight: bold;">${p.niederlagen}</td>
                     <td style="text-align: center; color: #f59e0b; font-weight: bold;">${p.hunderteachtziger}x</td>
-                    <td style="text-align: center; color: #64748b;">—</td>
-                    <td style="text-align: center; color: #64748b;">—</td>
+                    <td style="text-align: center;">${slDisplay}</td>
+                    <td style="text-align: center;">${hfDisplay}</td>
                 </tr>`;
         });
     }
@@ -547,7 +569,19 @@
                 cardHtml += `<div class="block-title-container"><span class="block-badge">${bTitle}</span></div>`;
                 st.bloecke[bTitle].forEach(m => {
                     globalMatchStore[m.id] = m;
-                    cardHtml += `<div class="match-row" onclick="openModal(${m.id})"><div class="match-num">${counter++}</div><div class="match-players"><div class="player-side left">${m.spieler} <span class="avg-tag">(${m.avg || '—'})</span></div><div class="score-tag">${m.ergebnis}</div><div class="player-side right">${m.gegner}</div></div><div class="stats-icon">📊</div></div>`;
+                    
+                    let leftWins = false, rightWins = false;
+                    if (m.ergebnis && m.ergebnis.includes(":")) {
+                        let parts = m.ergebnis.split(":");
+                        if (parseInt(parts[0]) > parseInt(parts[1])) leftWins = true;
+                        else if (parseInt(parts[1]) > parseInt(parts[0])) rightWins = true;
+                    }
+                    let leftHtml = m.spieler;
+                    let rightHtml = m.gegner;
+                    if (leftWins) leftHtml = `<span class="winner-name">${m.spieler}</span>`;
+                    else if (rightWins) rightHtml = `<span class="winner-name">${m.gegner}</span>`;
+
+                    cardHtml += `<div class="match-row" onclick="openModal(${m.id})"><div class="match-num">${counter++}</div><div class="match-players"><div class="player-side left">${leftHtml} <span class="avg-tag">(${m.avg || '—'})</span></div><div class="score-tag">${m.ergebnis}</div><div class="player-side right">${rightHtml}</div></div><div class="stats-icon">📊</div></div>`;
                 });
             });
             cardHtml += `</div>`;
@@ -558,8 +592,20 @@
     function openModal(id) {
         let m = globalMatchStore[id];
         if(!m) return;
+        let sc = m.scoring;
+        let slText = (m.darts >= 9 && m.darts <= 19) ? `<span style="color:#38bdf8; font-weight:bold;">${m.darts} Darts (Short Leg!)</span>` : (m.darts > 0 ? `${m.darts} Darts` : '—');
+
         document.getElementById("modalTitle").innerText = `${m.spieler} vs. ${m.gegner}`;
-        document.getElementById("modalBody").innerHTML = `<div style="text-align:center; font-size: 18px; font-weight:bold; color:#f59e0b; margin-bottom:10px;">Ergebnis: ${m.ergebnis}</div><div style="font-size:13px; color:#94a3b8; text-align:center;">Average: ${m.avg || '—'} | 60+: ${m.scoring.score_60} | 80+: ${m.scoring.score_80} | 100+: ${m.scoring.score_100} | 140+: ${m.scoring.score_140} | 180: ${m.scoring.score_180}</div>`;
+        document.getElementById("modalBody").innerHTML = `
+            <div style="text-align:center; font-size: 18px; font-weight:bold; color:#f59e0b; margin-bottom:12px;">Ergebnis: ${m.ergebnis}</div>
+            <div class="modal-section-title">Highlights & Details</div>
+            <div style="font-size: 13px; color: #cbd5e1; line-height: 1.6;">
+                <div><b>Average:</b> <span style="color:#f59e0b;">${m.avg || '—'}</span></div>
+                <div><b>Short Leg:</b> ${slText}</div>
+                <div><b>High Finish:</b> <span style="color:#ec4899; font-weight:bold;">${sc.high_finish || '—'}</span></div>
+                <div><b>180er:</b> <span style="color:#f59e0b; font-weight:bold;">${sc.score_180 || 0}x</span></div>
+                <div style="margin-top: 8px; font-size: 11px; color:#94a3b8;">Scores: 60+ (${sc.score_60}) | 80+ (${sc.score_80}) | 100+ (${sc.score_100}) | 140+ (${sc.score_140})</div>
+            </div>`;
         document.getElementById("matchModal").style.display = "flex";
     }
     function closeModal() { document.getElementById("matchModal").style.display = "none"; }
@@ -590,16 +636,28 @@
 
         let endstand = document.getElementById("newEndstand").value;
         let blockName = document.getElementById("newBlockName").value;
-        let spielerKap = document.getElementById("newSpielerKap").value;
-        let gegnerName = document.getElementById("newGegnerName").value;
+        let isDoppel = blockName.toLowerCase().includes("doppel");
+
+        let spielerKap = document.getElementById("newSpielerKap1").value;
+        let gegnerName = document.getElementById("newGegnerName1").value;
+
+        if (isDoppel) {
+            let kap2 = document.getElementById("newSpielerKap2").value;
+            let geg2 = document.getElementById("newGegnerName2").value;
+            spielerKap = `${spielerKap} / ${kap2}`;
+            gegnerName = `${gegnerName} / ${geg2}`;
+        }
+
         let ergebnis = document.getElementById("newErgebnis").value;
         let avg = document.getElementById("newAvg").value;
+        let darts = parseInt(document.getElementById("newDarts").value) || null;
 
         let s60 = parseInt(document.getElementById("score60").value) || 0;
         let s80 = parseInt(document.getElementById("score80").value) || 0;
         let s100 = parseInt(document.getElementById("score100").value) || 0;
         let s140 = parseInt(document.getElementById("score140").value) || 0;
         let s180 = parseInt(document.getElementById("score180").value) || 0;
+        let highFinish = parseInt(document.getElementById("highFinish").value) || 0;
 
         try {
             let { data: existingSt } = await supabaseClient.from('spieltage').select('id').eq('spieltag_nummer', sNum).single();
@@ -615,18 +673,19 @@
 
             let { data: newMatch, error: mErr } = await supabaseClient.from('matches').insert([{
                 spieltag_id: spieltagId, block_name: blockName, spieler_kapellen: spielerKap,
-                gegner_name: gegnerName, ergebnis: ergebnis, avg: avg ? parseFloat(avg) : null
+                gegner_name: gegnerName, ergebnis: ergebnis, avg: avg ? parseFloat(avg) : null, darts: darts
             }]).select().single();
             if (mErr) throw mErr;
 
             let { error: sErr } = await supabaseClient.from('scoring_stats').insert([{
-                match_id: newMatch.id, score_60: s60, score_80: s80, score_100: s100, score_140: s140, score_180: s180
+                match_id: newMatch.id, score_60: s60, score_80: s80, score_100: s100, score_140: s140, score_180: s180, high_finish: highFinish
             }]);
             if (sErr) throw sErr;
 
             alert("✓ Match & Scoring-Werte erfolgreich gespeichert!");
             document.getElementById("newMatchForm").reset();
             initAdminDropdowns();
+            toggleDoppelFields();
             closeAdminModal();
             loadDataFromSupabase();
         } catch (err) {
