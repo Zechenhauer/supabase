@@ -432,7 +432,6 @@
 
         try {
             document.getElementById("loadingMessage").style.display = "block";
-            // Abfrage der Standardtabellen für die 3. Mannschaft
             const { data: spieltageData, error } = await supabaseClient
                 .from('spieltage')
                 .select(`*, matches (*, scoring_stats (*))`)
@@ -505,6 +504,8 @@
                 };
 
                 st.bloecke[blockName].push(matchObj);
+                
+                // Korrigiert von 'beteiligigte' zu 'beteiligte'
                 let beteiligte = m.spieler_kapellen.split("/").map(s => s.trim());
                 beteiligigte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
 
@@ -725,7 +726,6 @@
         let highFinish = parseInt(document.getElementById("highFinish").value) || 0;
 
         try {
-            // Speichern in den Standardtabellen (spieltage, matches, scoring_stats)
             let { data: existingSt } = await supabaseClient.from('spieltage').select('id').eq('spieltag_nummer', sNum).single();
             let spieltagId;
             if (!existingSt) {
