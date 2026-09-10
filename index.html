@@ -242,32 +242,40 @@
                         <div class="admin-grid-2">
                             <div class="admin-form-group">
                                 <label>Block</label>
-                                <select id="newBlockName" onchange="toggleDoppelFields()">
+                                <select id="newBlockName" onchange="onBlockChanged()">
                                     <option value="1. Block - Einzel (1-8)">1. Block - Einzel (1-8)</option>
-                                    <option value="Doppel">Doppel</option>
+                                    <option value="Doppel">Doppel (1-4)</option>
                                     <option value="2. Block - Einzel (9-16)">2. Block - Einzel (9-16)</option>
                                 </select>
                             </div>
-                            <div class="admin-form-group" id="groupSpieler1">
+                            <div class="admin-form-group">
+                                <label>Partie-Nummer im Block</label>
+                                <select id="newPartieNum">
+                                    <!-- Wird dynamisch 1-8 oder 1-4 -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="admin-grid-2">
+                            <div class="admin-form-group">
                                 <label>Spieler Kapellen 1</label>
                                 <select id="newSpielerKap1"></select>
                             </div>
-                        </div>
-
-                        <div class="admin-grid-2" id="groupSpieler2" style="display:none;">
-                            <div class="admin-form-group">
+                            <div class="admin-form-group" id="groupSpieler2" style="display:none;">
                                 <label>Spieler Kapellen 2 (Doppelpartner)</label>
                                 <select id="newSpielerKap2"></select>
                             </div>
+                        </div>
+
+                        <div class="admin-grid-2">
                             <div class="admin-form-group">
+                                <label>Gegner Name 1</label>
+                                <select id="newGegnerName1"></select>
+                            </div>
+                            <div class="admin-form-group" id="groupGegner2" style="display:none;">
                                 <label>Gegner Name 2 (Doppelpartner)</label>
                                 <select id="newGegnerName2"></select>
                             </div>
-                        </div>
-
-                        <div class="admin-form-group" id="groupGegner1">
-                            <label>Gegner Name</label>
-                            <select id="newGegnerName1"></select>
                         </div>
 
                         <div class="modal-section-title">Spieldaten</div>
@@ -352,6 +360,7 @@
     document.addEventListener("DOMContentLoaded", () => {
         loadDataFromSupabase();
         initAdminDropdowns();
+        onBlockChanged();
     });
 
     function initAdminDropdowns() {
@@ -382,10 +391,22 @@
         });
     }
 
-    function toggleDoppelFields() {
+    function onBlockChanged() {
         let block = document.getElementById("newBlockName").value;
         let isDoppel = block.toLowerCase().includes("doppel");
-        document.getElementById("groupSpieler2").style.display = isDoppel ? "grid" : "none";
+        
+        // Felder für 2. Spieler im Doppel ein-/ausblenden
+        document.getElementById("groupSpieler2").style.display = isDoppel ? "block" : "none";
+        document.getElementById("groupGegner2").style.display = isDoppel ? "block" : "none";
+
+        // Partie-Nummern Dropdown anpassen (1-8 für Einzel, 1-4 für Doppel)
+        let partieSelect = document.getElementById("newPartieNum");
+        partieSelect.innerHTML = "";
+        let maxPartien = isDoppel ? 4 : 8;
+        for (let i = 1; i <= maxPartien; i++) {
+            let prefix = isDoppel ? "Doppel" : "Einzel";
+            partieSelect.innerHTML += `<option value="${prefix} ${i}">${prefix} ${i}</option>`;
+        }
     }
 
     function onDateSelected() {
@@ -636,6 +657,7 @@
 
         let endstand = document.getElementById("newEndstand").value;
         let blockName = document.getElementById("newBlockName").value;
+        let partieNum = document.getElementById("newPartieNum").value;
         let isDoppel = blockName.toLowerCase().includes("doppel");
 
         let spielerKap = document.getElementById("newSpielerKap1").value;
@@ -648,6 +670,7 @@
             gegnerName = `${gegnerName} / ${geg2}`;
         }
 
+        let fullBlockName = `${blockName} (${partieNum})`;
         let ergebnis = document.getElementById("newErgebnis").value;
         let avg = document.getElementById("newAvg").value;
         let darts = parseInt(document.getElementById("newDarts").value) || null;
@@ -672,7 +695,7 @@
             }
 
             let { data: newMatch, error: mErr } = await supabaseClient.from('matches').insert([{
-                spieltag_id: spieltagId, block_name: blockName, spieler_kapellen: spielerKap,
+                spieltag_id: spieltagId, block_name: fullBlockName, spieler_kapellen: spielerKap,
                 gegner_name: gegnerName, ergebnis: ergebnis, avg: avg ? parseFloat(avg) : null, darts: darts
             }]).select().single();
             if (mErr) throw mErr;
@@ -685,7 +708,7 @@
             alert("✓ Match & Scoring-Werte erfolgreich gespeichert!");
             document.getElementById("newMatchForm").reset();
             initAdminDropdowns();
-            toggleDoppelFields();
+            onBlockChanged();
             closeAdminModal();
             loadDataFromSupabase();
         } catch (err) {
