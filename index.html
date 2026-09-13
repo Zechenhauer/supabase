@@ -212,7 +212,6 @@
             border-color: var(--primary-gold);
         }
 
-        /* Styling für Dropdown-Menüs */
         .select-dropdown {
             background-color: #21262d;
             color: var(--text-color);
@@ -272,6 +271,14 @@
         }
         .form-control:focus { border-color: var(--primary-gold); outline: none; }
 
+        .add-match-box {
+            background: #0d1117;
+            border: 1px dashed var(--primary-gold);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
         /* Spieltag-Sektion Styling */
         .spieltag-section {
             margin-bottom: 35px;
@@ -304,7 +311,6 @@
             border: 1px solid var(--border-color);
         }
 
-        /* Match Grid innerhalb eines Spieltags */
         .matches-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -326,20 +332,9 @@
             box-shadow: 0 8px 24px rgba(0,0,0,0.3);
         }
 
-        .match-card.win {
-            background-color: rgba(46, 160, 67, 0.12) !important;
-            border: 1.5px solid #2ea043 !important;
-        }
-
-        .match-card.loss {
-            background-color: rgba(248, 81, 73, 0.12) !important;
-            border: 1.5px solid #f85149 !important;
-        }
-
-        .match-card.draw {
-            background-color: rgba(212, 175, 55, 0.12) !important;
-            border: 1.5px solid #d4af37 !important;
-        }
+        .match-card.win { background-color: rgba(46, 160, 67, 0.12) !important; border: 1.5px solid #2ea043 !important; }
+        .match-card.loss { background-color: rgba(248, 81, 73, 0.12) !important; border: 1.5px solid #f85149 !important; }
+        .match-card.draw { background-color: rgba(212, 175, 55, 0.12) !important; border: 1.5px solid #d4af37 !important; }
 
         .match-header {
             display: flex;
@@ -352,11 +347,7 @@
             font-weight: bold;
         }
 
-        .match-header-left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .match-header-left { display: flex; align-items: center; gap: 8px; }
 
         .team-badge {
             padding: 3px 8px;
@@ -370,152 +361,34 @@
         .team-badge.t3 { background-color: var(--team3-color); color: #fff; }
         .team-badge.t4 { background-color: var(--team4-color); color: #fff; }
 
-        .match-header .type-tag {
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-        }
+        .match-header .type-tag { padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase; }
+        .match-header .type-tag.heim { background-color: rgba(212, 175, 55, 0.15); color: var(--primary-gold); border: 1px solid rgba(212, 175, 55, 0.3); }
+        .match-header .type-tag.auswaerts { background-color: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.15); }
 
-        .match-header .type-tag.heim {
-            background-color: rgba(212, 175, 55, 0.15);
-            color: var(--primary-gold);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-        }
+        .match-body { padding: 20px 15px; display: flex; flex-direction: column; align-items: center; gap: 6px; flex-grow: 1; }
+        .match-date-info { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+        .match-venue-info { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-bottom: 6px; font-style: italic; }
 
-        .match-header .type-tag.auswaerts {
-            background-color: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
+        .teams-display { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.95rem; font-weight: bold; margin-top: 4px; }
+        .team-label { width: 42%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .team-label.highlight { color: var(--primary-gold); font-weight: 800; }
+        .vs { color: var(--text-muted); font-size: 0.8rem; font-weight: normal; }
 
-        .match-body {
-            padding: 20px 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            flex-grow: 1;
-        }
+        .result-display-container { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 5px; }
+        .score-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .score-badge { min-width: 45px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; background-color: #0d1117; border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; }
+        .score-badge.empty { color: #30363d; font-size: 1rem; }
+        .score-divider { font-size: 1.1rem; font-weight: bold; color: var(--text-muted); }
+        .legs-subtext { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
 
-        .match-date-info {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .match-venue-info {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-align: center;
-            margin-bottom: 6px;
-            font-style: italic;
-        }
-
-        .teams-display {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            font-size: 0.95rem;
-            font-weight: bold;
-            margin-top: 4px;
-        }
-
-        .team-label {
-            width: 42%;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .team-label.highlight {
-            color: var(--primary-gold);
-            font-weight: 800;
-        }
-
-        .vs {
-            color: var(--text-muted);
-            font-size: 0.8rem;
-            font-weight: normal;
-        }
-
-        .result-display-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            margin-top: 5px;
-        }
-
-        .score-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .score-badge {
-            min-width: 45px;
-            height: 36px;
-            padding: 0 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: 800;
-            background-color: #0d1117;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            color: #ffffff;
-        }
-
-        .score-badge.empty {
-            color: #30363d;
-            font-size: 1rem;
-        }
-
-        .score-divider {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: var(--text-muted);
-        }
-
-        .legs-subtext {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .match-footer {
-            padding: 10px 15px;
-            border-top: 1px solid var(--border-color);
-            background-color: rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .match-status {
-            font-size: 0.85rem;
-            font-weight: bold;
-        }
-
+        .match-footer { padding: 10px 15px; border-top: 1px solid var(--border-color); background-color: rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .match-status { font-size: 0.85rem; font-weight: bold; }
         .match-status.not-played { color: var(--text-muted); }
         .match-status.win { color: #3fb950; }
         .match-status.loss { color: #f85149; }
         .match-status.draw { color: var(--primary-gold); }
 
-        .no-matches-msg {
-            color: var(--text-muted);
-            text-align: center;
-            padding: 40px;
-            font-size: 1rem;
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-        }
+        .no-matches-msg { color: var(--text-muted); text-align: center; padding: 40px; font-size: 1rem; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
 
         @media (max-width: 600px) {
             body { padding: 12px 10px; }
@@ -555,19 +428,72 @@
     <!-- ADMIN BEREICH -->
     <div class="admin-card" id="adminCard">
         <div style="font-weight: bold; color: var(--primary-gold); margin-bottom: 15px; font-size: 1rem; display: flex; justify-content: space-between; align-items: center;">
-            <span>✏️ Admin-Modus: Ergebnisse & Tabellenplätze für <span id="adminSpieltagLabel">Spieltag 1</span> erfassen</span>
-            <button class="btn" style="background: var(--primary-gold); color: #000;" onclick="saveAllAdminChanges()">Speichern</button>
+            <span>✏️ Admin-Modus: Ergebnisse & Spieltage bearbeiten</span>
+            <button class="btn" style="background: var(--primary-gold); color: #000;" onclick="saveAllAdminChanges()">Änderungen Speichern</button>
         </div>
+        
         <div class="filter-group" style="margin-bottom: 15px;">
             <label class="filter-label" style="min-width: 90px;">Spieltag wählen:</label>
             <select class="select-dropdown" id="adminSpieltagSelect" onchange="changeAdminSpieltag(this.value)">
                 <!-- Dynamisch -->
             </select>
         </div>
+        
         <div id="adminMatchInputsContainer">
             <!-- Dynamisch -->
         </div>
-        <button class="btn" style="background: var(--primary-gold); color: #000; width: 100%; margin-top: 10px;" onclick="saveAllAdminChanges()">Alle Änderungen für diesen Spieltag speichern</button>
+
+        <!-- NEUES SPIEL HINZUFÜGEN -->
+        <div class="add-match-box">
+            <div style="font-weight: bold; color: var(--primary-gold); margin-bottom: 10px; font-size: 0.9rem;">➕ Neues Spiel / Rückrundenspiel hinzufügen</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                <div class="form-group">
+                    <label>Spieltag (Nr.)</label>
+                    <input type="number" id="new_spieltag" class="form-control" value="10" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Datum</label>
+                    <input type="date" id="new_date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Uhrzeit</label>
+                    <input type="text" id="new_time" class="form-control" value="19.00">
+                </div>
+                <div class="form-group">
+                    <label>Kapellen Team</label>
+                    <select id="new_team" class="form-control">
+                        <option value="TV Kapellen 1">TV Kapellen 1</option>
+                        <option value="TV Kapellen 2">TV Kapellen 2</option>
+                        <option value="TV Kapellen 3" selected>TV Kapellen 3</option>
+                        <option value="TV Kapellen 4">TV Kapellen 4</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div class="form-group">
+                    <label>Heimmannschaft</label>
+                    <input type="text" id="new_home" class="form-control" placeholder="z.B. TV Kapellen 3">
+                </div>
+                <div class="form-group">
+                    <label>Gastmannschaft</label>
+                    <input type="text" id="new_away" class="form-control" placeholder="z.B. DSC Goch 3">
+                </div>
+                <div class="form-group">
+                    <label>Ist es ein Heimspiel?</label>
+                    <select id="new_ishome" class="form-control">
+                        <option value="true">Ja (Heim)</option>
+                        <option value="false">Nein (Auswärts)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label>Auswärts-Spielstätte (nur bei Auswärtsspielen nötig, bei Heim automatisch JZ Henri)</label>
+                <input type="text" id="new_venue" class="form-control" placeholder="z.B. Gartenstr. 9, 47574 Goch">
+            </div>
+            <button class="btn" style="background: var(--primary-gold); color: #000; width: 100%;" onclick="addNewMatch()">Spiel zur Datenbank hinzufügen</button>
+        </div>
+
+        <button class="btn" style="background: var(--primary-gold); color: #000; width: 100%; margin-top: 15px;" onclick="saveAllAdminChanges()">Alle Änderungen speichern</button>
     </div>
 
     <!-- Live Statistics Dashboard - 6 Kacheln -->
@@ -711,7 +637,7 @@
                 document.getElementById('syncStatus').textContent = '● Cloud Verbunden';
                 document.getElementById('syncStatus').style.color = '#2ea043';
             } else {
-                saveToCloud(); // Initial speichern
+                saveToCloud();
             }
         } catch (e) {
             console.log('Cloud Lade-Hinweis:', e);
@@ -775,7 +701,7 @@
     }
 
     function renderAdminInputs() {
-        document.getElementById('adminSpieltagLabel').textContent = `${adminCurrentSpieltag}. Spieltag`;
+        populateAdminDropdowns();
         let container = document.getElementById('adminMatchInputsContainer');
         container.innerHTML = '';
 
@@ -841,6 +767,48 @@
         saveToCloud();
         initApp();
         alert("Spieltag erfolgreich gespeichert!");
+    }
+
+    function addNewMatch() {
+        let st = parseInt(document.getElementById('new_spieltag').value);
+        let date = document.getElementById('new_date').value;
+        let time = document.getElementById('new_time').value;
+        let team = document.getElementById('new_team').value;
+        let teamHome = document.getElementById('new_home').value;
+        let teamAway = document.getElementById('new_away').value;
+        let isHome = document.getElementById('new_ishome').value === 'true';
+        let venue = document.getElementById('new_venue').value;
+
+        if (!teamHome || !teamAway) {
+            alert("Bitte Heimmannschaft und Gastmannschaft angeben!");
+            return;
+        }
+
+        let newId = rawMatches.length > 0 ? Math.max(...rawMatches.map(m => m.id)) + 1 : 1;
+
+        let newMatch = {
+            id: newId,
+            spieltag: st,
+            date: date,
+            time: time,
+            team: team,
+            teamHome: teamHome,
+            teamAway: teamAway,
+            isHome: isHome,
+            homeScore: null,
+            awayScore: null,
+            homeLegs: null,
+            awayLegs: null,
+            tabellenplatz: null,
+            venue: isHome ? "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" : venue
+        };
+
+        rawMatches.push(newMatch);
+        saveToCloud();
+        adminCurrentSpieltag = st;
+        renderAdminInputs();
+        initApp();
+        alert("Neues Spiel erfolgreich hinzugefügt!");
     }
 
     function initApp() {
