@@ -3,814 +3,1120 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Saisonübersicht 3. Mannschaft — TV Kapellen 1919 e.V. (Supabase)</title>
+    <title>TV Kapellen Darts - Live-Spielplaner</title>
+    <!-- Supabase Client Bibliothek laden -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-    * { box-sizing: border-box; }
-    body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        background-color: #0f172a;
-        color: #f8fafc;
-        margin: 0;
-        padding: 20px 15px;
-    }
-    .container { max-width: 1200px; margin: 0 auto; position: relative; }
-    
-    .app-main-header { text-align: center; margin-bottom: 20px; position: relative; }
-    .header-title-row { display: flex; align-items: center; justify-content: center; gap: 15px; margin-bottom: 4px; width: 100%; }
-    .header-logo { width: 55px; height: 55px; border-radius: 50%; object-fit: contain; border: 2px solid #f59e0b; background: #0f172a; box-shadow: 0 4px 10px rgba(0,0,0,0.3); padding: 4px; flex-shrink: 0; }
-    .app-main-header h1 { color: #f59e0b; font-size: 26px; font-weight: 900; margin: 0; letter-spacing: 1px; text-transform: uppercase; }
-    .app-main-header .app-subtitle { color: #94a3b8; font-size: 13px; font-weight: 600; margin-top: 4px; }
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --text-color: #c9d1d9;
+            --text-muted: #8b949e;
+            --primary-gold: #d4af37;
+            --accent-blue: #58a6ff;
+            
+            /* Team Farben zur Unterscheidung */
+            --team1-color: #e3b341; /* Gold */
+            --team2-color: #58a6ff; /* Blau */
+            --team3-color: #3fb950; /* Grün */
+            --team4-color: #bc8cff; /* Violett */
+        }
 
-    .top-controls { position: absolute; top: 0; right: 0; display: flex; gap: 8px; }
-    .action-btn { background: transparent; border: 1px solid #f59e0b; color: #f59e0b; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s ease; }
-    .action-btn:hover { background: #f59e0b; color: #0f172a; }
-    .action-btn.admin-btn { border-color: #38bdf8; color: #38bdf8; }
-    .action-btn.admin-btn:hover { background: #38bdf8; color: #0f172a; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
 
-    .search-wrapper { position: sticky; top: 15px; z-index: 90; margin-bottom: 25px; display: flex; justify-content: center; }
-    .search-box-input { width: 100%; max-width: 500px; padding: 12px 24px; font-size: 14px; background-color: #1e293b; color: #ffffff; border: 2px solid #f59e0b; border-radius: 25px; outline: none; text-align: center; }
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
 
-    .dashboard-grid { display: grid; grid-template-columns: 1.25fr 0.75fr; gap: 20px; margin-bottom: 35px; }
-    @media (max-width: 950px) { .dashboard-grid { grid-template-columns: 1fr; } .top-controls { position: static; justify-content: center; margin-top: 10px; display: flex; } }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-    .premium-card { background-color: #1e293b; border: 2px solid #f59e0b; border-radius: 12px; padding: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-    .card-header-title { text-align: center; margin-bottom: 12px; }
-    .card-header-title h2 { color: #f59e0b; margin: 0; font-size: 16px; text-transform: uppercase; font-weight: 900; }
-    .card-header-title .subtitle { color: #34d399; font-size: 11px; font-weight: bold; margin-top: 3px; }
+        /* Header Styling */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
 
-    .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    .data-table th { background-color: #334155; color: #94a3b8; text-align: left; padding: 8px 4px; font-size: 10px; text-transform: uppercase; }
-    .data-table td { padding: 8px 4px; border-bottom: 1px solid #334155; font-size: 12px; }
+        .header-title h1 {
+            font-size: 2.2rem;
+            color: #ffffff;
+            font-weight: 800;
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
 
-    .col-60 { color: #f97316 !important; background-color: rgba(249, 115, 22, 0.1); font-weight: bold; }
-    .col-80 { color: #facc15 !important; background-color: rgba(250, 204, 21, 0.1); font-weight: bold; }
-    .col-100 { color: #4ade80 !important; background-color: rgba(74, 222, 128, 0.1); font-weight: bold; }
-    .col-140 { background-color: rgba(56, 189, 248, 0.1); font-weight: bold; }
-    .badge-140 { background-color: #0284c7; color: #ffffff; padding: 2px 8px; border-radius: 4px; font-weight: bold; display: inline-block; }
+        .header-title h1 span {
+            color: var(--primary-gold);
+        }
 
-    .nav-links { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 25px; justify-content: center; background: #1e293b; padding: 12px; border-radius: 12px; border: 1px solid #334155; }
-    .nav-links a { color: #cbd5e1; text-decoration: none; font-size: 12px; font-weight: bold; padding: 6px 12px; background: #0f172a; border-radius: 6px; border: 1px solid #334155; }
-    .nav-links a:hover { border-color: #f59e0b; background: #f59e0b; color: #0f172a; }
+        .header-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: contain;
+            border: 2px solid #f59e0b;
+            background: #0f172a;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            padding: 4px;
+            box-sizing: border-box;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
 
-    .card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; margin-bottom: 30px; overflow: hidden; scroll-margin-top: 80px; }
-    .card-header { background: #0f172a; padding: 15px; border-bottom: 1px solid #334155; text-align: center; }
-    .spieltag-label { font-size: 12px; font-weight: bold; color: #94a3b8; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
-    
-    .matchday-title-box { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 18px; font-weight: 800; flex-wrap: wrap; }
-    
-    .team-badge { padding: 6px 14px; border-radius: 6px; font-weight: bold; color: #ffffff; background-color: #334155; border: 1px solid #475569; }
-    .team-badge.winner { background-color: rgba(22, 101, 52, 0.4); border: 2px solid #22c55e; color: #4ade80; }
-    
-    .matchday-score { font-size: 22px; font-weight: 900; color: #f59e0b; background: #1e293b; padding: 4px 14px; border-radius: 8px; border: 1px solid #334155; }
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-top: 4px;
+        }
 
-    /* Dezente farbliche Unterscheidung der Blöcke */
-    .block-title-container { background: #162032; padding: 8px 15px; border-bottom: 1px solid #334155; border-top: 1px solid #334155; }
-    .block-badge { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; padding: 4px 10px; border-radius: 4px; background: #1e293b; color: #94a3b8; border: 1px solid #475569; letter-spacing: 0.5px; }
-    .block-badge.einzel-1 { border-left: 3px solid #38bdf8; color: #e2e8f0; }
-    .block-badge.doppel { border-left: 3px solid #f59e0b; color: #e2e8f0; }
-    .block-badge.einzel-2 { border-left: 3px solid #34d399; color: #e2e8f0; }
-    
-    .match-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 15px; border-bottom: 1px solid #334155; cursor: pointer; transition: background 0.15s ease; }
-    .match-row:hover { background-color: #334155; }
-    .match-num { width: 25px; color: #64748b; font-size: 12px; font-weight: bold; }
-    .match-players { flex: 1; display: flex; justify-content: space-between; align-items: center; padding: 0 10px; font-size: 14px; }
-    .player-side { width: 42%; font-weight: 500; }
-    .player-side.left { text-align: right; }
-    .player-side.right { text-align: left; }
-    
-    .winner-name { color: #4ade80; font-weight: bold; background-color: rgba(22, 101, 52, 0.25); border: 1px solid #22c55e; padding: 2px 8px; border-radius: 6px; display: inline-block; }
-    .avg-tag { color: #94a3b8; font-size: 12px; margin: 0 4px; }
-    .score-tag { background: #0f172a; color: #f59e0b; padding: 4px 10px; border-radius: 6px; font-weight: bold; font-family: monospace; font-size: 14px; border: 1px solid #334155; min-width: 45px; text-align: center; }
-    .stats-icon { color: #34d399; font-size: 14px; margin-left: 10px; }
+        /* Info Box */
+        .info-box {
+            background-color: rgba(88, 166, 255, 0.05);
+            border: 1px solid rgba(88, 166, 255, 0.15);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #c9d1d9;
+            font-size: 0.9rem;
+        }
 
-    /* Modal Styling */
-    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15, 23, 42, 0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
-    .modal-content { background: #1e293b; border: 1px solid #f59e0b; width: 90%; max-width: 550px; border-radius: 12px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); max-height: 90vh; overflow-y: auto; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 15px; }
-    .modal-title { font-size: 16px; font-weight: bold; color: #fff; }
-    .close-btn { background: none; border: none; color: #94a3b8; font-size: 22px; cursor: pointer; }
-    
-    .popup-section-title { color: #f59e0b; font-size: 12px; font-weight: 900; margin: 18px 0 8px 0; text-transform: uppercase; border-left: 3px solid #f59e0b; padding-left: 8px; letter-spacing: 0.5px; }
-    .popup-table { width: 100%; border-collapse: collapse; margin-bottom: 5px; }
-    .popup-table th { background-color: #0f172a; color: #f59e0b; text-align: center; padding: 7px; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid #334155; }
-    .popup-table td { padding: 8px; text-align: center; font-size: 13px; border-bottom: 1px solid #334155; color: #fff; }
-    .popup-table td:first-child { text-align: left; font-weight: 500; }
-    .popup-table th:first-child { text-align: left; }
-    
-    .popup-scoring-th { background-color: #991b1b !important; color: #ffffff !important; }
-    
-    .popup-highlights-box { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 12px; font-size: 13px; color: #cbd5e1; margin-top: 5px; }
-    .popup-highlights-box div { margin-bottom: 6px; }
-    .popup-highlights-box div:last-child { margin-bottom: 0; }
+        .info-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-    .admin-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .admin-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .admin-form-group { margin-bottom: 10px; }
-    .admin-form-group label { display: block; font-size: 11px; color: #94a3b8; margin-bottom: 3px; font-weight: bold; text-transform: uppercase; }
-    .admin-form-group input, .admin-form-group select { width: 100%; padding: 8px 10px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 6px; font-size: 13px; }
-    
-    .admin-submit-btn { background: #f59e0b; color: #0f172a; border: none; width: 100%; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 15px; font-size: 14px; text-transform: uppercase; }
-    .admin-submit-btn:hover { background: #d97706; }
-    .row-faded { opacity: 0.2; }
-    .row-matched { background-color: rgba(245, 158, 11, 0.15) !important; }
+        .info-box svg {
+            color: var(--accent-blue);
+            flex-shrink: 0;
+        }
+
+        /* Dashboard Overview Grid - 6 Kacheln */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px 15px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffffff;
+            transition: color 0.3s ease;
+        }
+
+        .stat-card .value.points {
+            color: var(--primary-gold);
+        }
+
+        .stat-card .value.place-gold { color: #f1c40f !important; text-shadow: 0 0 8px rgba(241, 196, 15, 0.3); }
+        .stat-card .value.place-top { color: #2ecc71 !important; }
+        .stat-card .value.place-mid { color: #3498db !important; }
+        .stat-card .value.place-low { color: #e74c3c !important; }
+
+        /* Filters & Actions */
+        .toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            min-width: 130px;
+        }
+
+        .btn {
+            background-color: #21262d;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background-color: #30363d;
+            border-color: #8b949e;
+        }
+
+        .btn.active {
+            background-color: var(--primary-gold);
+            color: #000000;
+            border-color: var(--primary-gold);
+        }
+
+        .admin-toggle-btn {
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .admin-toggle-btn:hover {
+            color: var(--primary-gold);
+            border-color: var(--primary-gold);
+        }
+
+        /* Styling für Dropdown-Menüs */
+        .select-dropdown {
+            background-color: #21262d;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+
+        .select-dropdown:hover, .select-dropdown:focus {
+            background-color: #30363d;
+            border-color: var(--primary-gold);
+        }
+
+        /* Admin Bearbeitungs-Card */
+        .admin-card {
+            background: #161b22;
+            border: 1px solid var(--primary-gold);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: none;
+        }
+        .match-edit-row {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+        @media(max-width: 900px) {
+            .match-edit-row { grid-template-columns: 1fr 1fr; }
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+        .form-control {
+            width: 100%;
+            padding: 6px;
+            background: #161b22;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .form-control:focus { border-color: var(--primary-gold); outline: none; }
+
+        /* Spieltag-Sektion Styling */
+        .spieltag-section {
+            margin-bottom: 35px;
+        }
+
+        .spieltag-header-card {
+            background: linear-gradient(135deg, #161b22 0%, #21262d 100%);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-gold);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .spieltag-header-card h2 {
+            font-size: 1.25rem;
+            color: #ffffff;
+            font-weight: 700;
+        }
+
+        .spieltag-header-card .badge-count {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background-color: rgba(255, 255, 255, 0.05);
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Match Grid innerhalb eines Spieltags */
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .match-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .match-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
+
+        .match-card.win {
+            background-color: rgba(46, 160, 67, 0.12) !important;
+            border: 1.5px solid #2ea043 !important;
+        }
+
+        .match-card.loss {
+            background-color: rgba(248, 81, 73, 0.12) !important;
+            border: 1.5px solid #f85149 !important;
+        }
+
+        .match-card.draw {
+            background-color: rgba(212, 175, 55, 0.12) !important;
+            border: 1.5px solid #d4af37 !important;
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .match-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .team-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #000;
+        }
+        .team-badge.t1 { background-color: var(--team1-color); }
+        .team-badge.t2 { background-color: var(--team2-color); color: #fff; }
+        .team-badge.t3 { background-color: var(--team3-color); color: #fff; }
+        .team-badge.t4 { background-color: var(--team4-color); color: #fff; }
+
+        .match-header .type-tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+
+        .match-header .type-tag.heim {
+            background-color: rgba(212, 175, 55, 0.15);
+            color: var(--primary-gold);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .match-header .type-tag.auswaerts {
+            background-color: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .match-body {
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex-grow: 1;
+        }
+
+        .match-date-info {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .match-venue-info {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 6px;
+            font-style: italic;
+        }
+
+        .teams-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            font-size: 0.95rem;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .team-label {
+            width: 42%;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .team-label.highlight {
+            color: var(--primary-gold);
+            font-weight: 800;
+        }
+
+        .vs {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: normal;
+        }
+
+        .result-display-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            margin-top: 5px;
+        }
+
+        .score-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .score-badge {
+            min-width: 45px;
+            height: 36px;
+            padding: 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: 800;
+            background-color: #0d1117;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: #ffffff;
+        }
+
+        .score-badge.empty {
+            color: #30363d;
+            font-size: 1rem;
+        }
+
+        .score-divider {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        .legs-subtext {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .match-footer {
+            padding: 10px 15px;
+            border-top: 1px solid var(--border-color);
+            background-color: rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .match-status {
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .match-status.not-played { color: var(--text-muted); }
+        .match-status.win { color: #3fb950; }
+        .match-status.loss { color: #f85149; }
+        .match-status.draw { color: var(--primary-gold); }
+
+        .no-matches-msg {
+            color: var(--text-muted);
+            text-align: center;
+            padding: 40px;
+            font-size: 1rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+        }
+
+        @media (max-width: 600px) {
+            body { padding: 12px 10px; }
+            header { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .header-title h1 { font-size: 1.6rem; gap: 10px; }
+            .header-logo { height: 45px; width: 45px; }
+            .overview-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stat-card { padding: 12px 8px; }
+            .stat-card h3 { font-size: 0.7rem; }
+            .stat-card .value { font-size: 1.4rem; }
+            .filter-label { min-width: 100%; margin-bottom: 2px; }
+            .matches-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="app-main-header">
-            <div class="top-controls">
-                <button class="action-btn admin-btn" onclick="openAdminModal()">🔐 Admin-Login</button>
-                <button class="action-btn" id="refreshBtn" onclick="loadDataFromSupabase()">🔄 Aktualisieren</button>
-            </div>
+
+<div class="container">
+    <header>
+        <div class="header-title">
+            <h1>TV Kapellen 1919 e.V. <span>Spieltags - Planer</span> <img src="https://lh3.googleusercontent.com/d/1PB4X2QrrMlaRlajQEWDtJxRP2c6VTsI5" alt="TV Kapellen Logo" class="header-logo"></h1>
+            <p>Chronologischer Gesamtspielplan • Saison 26/27</p>
+        </div>
+        <button class="admin-toggle-btn" onclick="toggleAdminMode()">⚙️ Admin-Zugang</button>
+    </header>
+
+    <div class="info-box">
+        <div class="info-left">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+            </svg>
+            <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
+        </div>
+        <span id="syncStatus" style="font-size: 0.75rem; color: #2ea043;">● Cloud Verbunden</span>
+    </div>
+
+    <!-- ADMIN BEREICH -->
+    <div class="admin-card" id="adminCard">
+        <div style="font-weight: bold; color: var(--primary-gold); margin-bottom: 15px; font-size: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>✏️ Admin-Modus: Ergebnisse & Tabellenplätze für <span id="adminSpieltagLabel">Spieltag 1</span> erfassen</span>
+            <button class="btn" style="background: var(--primary-gold); color: #000;" onclick="saveAllAdminChanges()">Speichern</button>
+        </div>
+        <div class="filter-group" style="margin-bottom: 15px;">
+            <label class="filter-label" style="min-width: 90px;">Spieltag wählen:</label>
+            <select class="select-dropdown" id="adminSpieltagSelect" onchange="changeAdminSpieltag(this.value)">
+                <!-- Dynamisch -->
+            </select>
+        </div>
+        <div id="adminMatchInputsContainer">
+            <!-- Dynamisch -->
+        </div>
+        <button class="btn" style="background: var(--primary-gold); color: #000; width: 100%; margin-top: 10px;" onclick="saveAllAdminChanges()">Alle Änderungen für diesen Spieltag speichern</button>
+    </div>
+
+    <!-- Live Statistics Dashboard - 6 Kacheln -->
+    <div class="overview-grid">
+        <div class="stat-card">
+            <h3>Tabellenplatz</h3>
+            <div class="value" id="stats-place">-</div>
+        </div>
+        <div class="stat-card">
+            <h3>Spiele Gesamt</h3>
+            <div class="value" id="stats-played">0 / 0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Punkte</h3>
+            <div class="value points" id="stats-points">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>S / U / N</h3>
+            <div class="value" id="stats-record">0 - 0 - 0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Sets</h3>
+            <div class="value" id="stats-sets">0 : 0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Legs</h3>
+            <div class="value" id="stats-legs">0 : 0</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="toolbar">
+        <!-- Auswertungs-Filter -->
+        <div class="filter-group">
+            <span class="filter-label">Auswertung Team:</span>
+            <button class="btn active" onclick="filterStatTeam('TV Kapellen 1', this)">TV Kapellen 1</button>
+            <button class="btn" onclick="filterStatTeam('TV Kapellen 2', this)">TV Kapellen 2</button>
+            <button class="btn" onclick="filterStatTeam('TV Kapellen 3', this)">TV Kapellen 3</button>
+            <button class="btn" onclick="filterStatTeam('TV Kapellen 4', this)">TV Kapellen 4</button>
+        </div>
+
+        <!-- Filter für die unten angezeigten Spiele -->
+        <div class="filter-group">
+            <span class="filter-label">Anzeige Filter:</span>
             
-            <div class="header-title-row">
-                <img src="https://lh3.googleusercontent.com/d/1PB4X2QrrMlaRlajQEWDtJxRP2c6VTsI5" alt="TV Kapellen Logo" class="header-logo">
-                <h1>TV Kapellen 1919 e.V. 3</h1>
-                <img src="https://lh3.googleusercontent.com/d/1PB4X2QrrMlaRlajQEWDtJxRP2c6VTsI5" alt="TV Kapellen Logo" class="header-logo">
-            </div>
+            <select class="select-dropdown" id="team-select" onchange="filterDisplayTeam(this.value)">
+                <option value="all">Alle Teams</option>
+                <option value="TV Kapellen 1">TV Kapellen 1</option>
+                <option value="TV Kapellen 2">TV Kapellen 2</option>
+                <option value="TV Kapellen 3">TV Kapellen 3</option>
+                <option value="TV Kapellen 4">TV Kapellen 4</option>
+            </select>
 
-            <div class="app-subtitle">Saisonübersicht & Spieler-Statistiken (Supabase Live)</div>
-        </div>
-
-        <div class="search-wrapper">
-            <input type="text" id="playerSearchInput" class="search-box-input" placeholder="🔍 Nach Spieler-Name suchen..." oninput="performLiveSearch()">
-        </div>
-
-        <div id="loadingMessage" style="text-align:center; color:#f59e0b; margin: 20px 0;">Lade Daten aus Supabase...</div>
-
-        <div class="dashboard-grid" id="statsGrid" style="display:none;">
-            <div class="premium-card">
-                <div class="card-header-title">
-                    <h2>🏆 HIGHLIGHTS & BILANZ</h2>
-                    <div class="subtitle">SIEGE, NIEDERLAGEN & BESTLEISTUNGEN (NUR EINZEL)</div>
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 6%; text-align: center;">#</th>
-                            <th style="width: 32%;">SPIELER</th>
-                            <th style="width: 11%; text-align: center; color: #34d399;">G</th>
-                            <th style="width: 11%; text-align: center; color: #f87171;">V</th>
-                            <th style="width: 13%; text-align: center; color: #f59e0b;">180</th>
-                            <th style="width: 14%; text-align: center; color: #34d399;">SL</th>
-                            <th style="width: 13%; text-align: center; color: #ec4899;">HF</th>
-                        </tr>
-                    </thead>
-                    <tbody id="highlightsTableBody"></tbody>
-                </table>
-            </div>
-
-            <div class="premium-card">
-                <div class="card-header-title">
-                    <h2>🎯 SCORING-STATS</h2>
-                    <div class="subtitle">GESAMTANZAHL ALLER HIGH-SCORES (NUR EINZEL)</div>
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 8%; text-align: center;">#</th>
-                            <th style="width: 36%;">SPIELER</th>
-                            <th style="width: 14%; text-align: center;" class="col-60">60+</th>
-                            <th style="width: 14%; text-align: center;" class="col-80">80+</th>
-                            <th style="width: 14%; text-align: center;" class="col-100">100+</th>
-                            <th style="width: 14%; text-align: center; color: #38bdf8;" class="col-140">140+</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scoringTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="nav-links" id="navLinks" style="display:none;"></div>
-        <div id="spieltageContainer"></div>
-    </div>
-
-    <!-- Match Modal -->
-    <div class="modal-overlay" id="matchModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title" id="modalTitle">Match Details</div>
-                <button class="close-btn" onclick="closeModal()">&times;</button>
-            </div>
-            <div id="modalBody"></div>
+            <button class="btn active" onclick="filterType('all', this)">Alle Spiele</button>
+            <button class="btn" onclick="filterType('heim', this)">Heimspiele</button>
+            <button class="btn" onclick="filterType('auswaerts', this)">Auswärtsspiele</button>
+            <button class="btn" onclick="filterType('played', this)">Gespielt</button>
+            
+            <select class="select-dropdown" id="spieltag-select" onchange="filterSpieltag(this.value)">
+                <option value="all">Alle Spieltage</option>
+            </select>
         </div>
     </div>
 
-    <!-- Admin / Eingabe Modal -->
-    <div class="modal-overlay" id="adminModal">
-        <div class="modal-content" style="max-width: 650px;">
-            <div class="modal-header">
-                <div class="modal-title">🔐 Admin & Match Erfassung (3. Mannschaft)</div>
-                <button class="close-btn" onclick="closeAdminModal()">&times;</button>
-            </div>
-            <div id="adminModalBody">
-                <div id="adminLoginForm">
-                    <p style="font-size: 13px; color: #94a3b8; margin-bottom: 15px;">Logge dich mit deinen Supabase-Zugangsdaten ein.</p>
-                    <div class="admin-form-group">
-                        <label>E-Mail</label>
-                        <input type="email" id="adminEmail" placeholder="deine.email@domain.de">
-                    </div>
-                    <div class="admin-form-group">
-                        <label>Passwort</label>
-                        <input type="password" id="adminPassword" placeholder="••••••••">
-                    </div>
-                    <button class="admin-submit-btn" onclick="adminLogin()">Einloggen</button>
-                    <div id="loginError" style="color: #f87171; font-size: 12px; margin-top: 10px; text-align: center;"></div>
-                </div>
-
-                <div id="adminDashboard" style="display:none;">
-                    <div style="background: rgba(74, 222, 128, 0.1); border: 1px solid #4ade80; padding: 8px; border-radius: 6px; margin-bottom: 12px; font-size: 12px; color: #4ade80; text-align: center;">
-                        ✓ Als Admin eingeloggt — Neuer Eintrag in Supabase (Team 3)
-                    </div>
-                    
-                    <form id="newMatchForm" onsubmit="submitNewMatch(event)">
-                        <div class="admin-grid-2">
-                            <div class="admin-form-group">
-                                <label>Datum auswählen</label>
-                                <select id="newDatumSelect" onchange="onDateSelected()">
-                                    <!-- Wird per JS befüllt -->
-                                </select>
-                            </div>
-                            <div class="admin-form-group">
-                                <label>Gegner Mannschaft</label>
-                                <input type="text" id="newGegnerTeam" readonly style="background:#111827; color:#f59e0b; font-weight:bold;">
-                            </div>
-                        </div>
-
-                        <div class="admin-grid-2">
-                            <div class="admin-form-group">
-                                <label>Spieltag Nr.</label>
-                                <input type="number" id="newSpieltagNum" readonly style="background:#111827; color:#34d399; font-weight:bold;">
-                            </div>
-                            <div class="admin-form-group">
-                                <label>Endstand Team (Gesamtergebnis)</label>
-                                <input type="text" id="newEndstand" placeholder="z.B. 12:8">
-                            </div>
-                        </div>
-
-                        <div class="admin-grid-2">
-                            <div class="admin-form-group">
-                                <label>Block</label>
-                                <select id="newBlockName" onchange="onBlockChanged()">
-                                    <option value="1. Block - Einzel (1-8)">1. Block - Einzel (1-8)</option>
-                                    <option value="Doppel">Doppel (1-4)</option>
-                                    <option value="2. Block - Einzel (9-16)">2. Block - Einzel (9-16)</option>
-                                </select>
-                            </div>
-                            <div class="admin-form-group">
-                                <label>Partie-Nummer im Block</label>
-                                <select id="newPartieNum"></select>
-                            </div>
-                        </div>
-
-                        <div class="admin-grid-2">
-                            <div class="admin-form-group">
-                                <label>Spieler Kapellen 3</label>
-                                <select id="newSpielerKap1"></select>
-                            </div>
-                            <div class="admin-form-group" id="groupSpieler2" style="display:none;">
-                                <label>Spieler Kapellen 2 (Doppelpartner)</label>
-                                <select id="newSpielerKap2"></select>
-                            </div>
-                        </div>
-
-                        <div class="admin-grid-2">
-                            <div class="admin-form-group">
-                                <label>Gegner Name 1</label>
-                                <select id="newGegnerName1"></select>
-                            </div>
-                            <div class="admin-form-group" id="groupGegner2" style="display:none;">
-                                <label>Gegner Name 2 (Doppelpartner)</label>
-                                <select id="newGegnerName2"></select>
-                            </div>
-                        </div>
-
-                        <div class="modal-section-title">Spieldaten</div>
-                        <div class="admin-grid-3">
-                            <div class="admin-form-group">
-                                <label>Ergebnis</label>
-                                <input type="text" id="newErgebnis" required placeholder="3:1">
-                            </div>
-                            <div class="admin-form-group">
-                                <label>Average</label>
-                                <input type="number" step="0.01" id="newAvg" placeholder="0.00">
-                            </div>
-                            <div class="admin-form-group">
-                                <label>Darts pro Leg (z.B. 32,25,18)</label>
-                                <input type="text" id="newDarts" placeholder="32,25,18">
-                            </div>
-                        </div>
-
-                        <div class="modal-section-title">Scores & Highlights</div>
-                        <div class="admin-grid-3">
-                            <div class="admin-form-group"><label>60+</label><input type="number" id="score60" value="0"></div>
-                            <div class="admin-form-group"><label>80+</label><input type="number" id="score80" value="0"></div>
-                            <div class="admin-form-group"><label>100+</label><input type="number" id="score100" value="0"></div>
-                        </div>
-                        <div class="admin-grid-3">
-                            <div class="admin-form-group"><label>140+</label><input type="number" id="score140" value="0"></div>
-                            <div class="admin-form-group"><label>180er</label><input type="number" id="score180" value="0"></div>
-                            <div class="admin-form-group"><label>High Finish (HF)</label><input type="number" id="highFinish" value="0"></div>
-                        </div>
-
-                        <button type="submit" class="admin-submit-btn">💾 In Supabase Speichern</button>
-                    </form>
-                    <button class="action-btn" style="width:100%; margin-top:15px; border-color:#f87171; color:#f87171;" onclick="adminLogout()">Ausloggen</button>
-                </div>
-            </div>
-        </div>
+    <!-- Container für gruppierte Spieltage -->
+    <div id="matches-container">
+        <!-- Dynamisch befüllt -->
     </div>
+</div>
 
-    <script>
+<script>
+    // ==========================================
+    // SUPABASE EINSTELLUNGEN
+    // ==========================================
     const SUPABASE_URL = 'https://lhusylpjnujlqomougmg.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_yXEueWILvAq-Vm2VfTuYyg_BIQeE1KK';
-
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    const teamKader = [
-        "Jürgen Schützendorf", "Markus Ginsel", "Thomas Kliver", "Leon Gerber", "Gregor Marek", "Markus Lenz", "Florian Hartwich", "Wolfram Senger", "Lars Neutag", "Ludger Schledorn", "Andreas Denner", "Niklas Weichert", "Michael Müller", "Yannick Steffes"
+    const ADMIN_PIN = "1921";
+    let isAdmin = false;
+    let adminCurrentSpieltag = 1;
+
+    let rawMatches = [
+        { id: 1, spieltag: 1, date: "2026-09-05", time: "19.00", team: "TV Kapellen 3", teamHome: "TV Kapellen 2", teamAway: "TV Kapellen 3", isHome: false, homeScore: 7, awayScore: 3, homeLegs: 16, awayLegs: 10, tabellenplatz: 6, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 2, spieltag: 2, date: "2026-09-18", time: "19.00", team: "TV Kapellen 3", teamHome: "TV Kapellen 3", teamAway: "DSC Goch 3", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 3, spieltag: 3, date: "2026-09-25", time: "19.00", team: "TV Kapellen 3", teamHome: "Rumelner TV 3", teamAway: "TV Kapellen 3", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Am Sportplatz 15, 47239 Duisburg" },
+        { id: 4, spieltag: 4, date: "2026-10-10", time: "19.00", team: "TV Kapellen 3", teamHome: "DSC Goch 4", teamAway: "TV Kapellen 3", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Gartenstr. 9, 47574 Goch" },
+        { id: 5, spieltag: 5, date: "2026-10-23", time: "20.00", team: "TV Kapellen 3", teamHome: "TV Kapellen 3", teamAway: "Triple Inn Issum 2", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Gartenstr. 9, 47574 Goch" },
+        { id: 6, spieltag: 6, date: "2026-11-07", time: "20.00", team: "TV Kapellen 3", teamHome: "SV Menzelen 1925", teamAway: "TV Kapellen 3", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Bernshuck 33, 46519 Alpen" },
+        { id: 7, spieltag: 7, date: "2026-11-13", time: "20.00", team: "TV Kapellen 3", teamHome: "TV Kapellen 3", teamAway: "Die Wardter Darter", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Bernshuck 33, 46519 Alpen" },
+        { id: 8, spieltag: 8, date: "2026-11-27", time: "20.00", team: "TV Kapellen 3", teamHome: "TV Kapellen 3", teamAway: "The Red Lions Xanten 1", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Bernshuck 33, 46519 Alpen" },
+        { id: 9, spieltag: 9, date: "2027-01-09", time: "20.00", team: "TV Kapellen 3", teamHome: "Hart am Draht", teamAway: "TV Kapellen 3", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Geldernsche Str. 443, 47506 Neukirchen-Vluyn" },
+        
+        { id: 11, spieltag: 1, date: "2026-09-05", time: "19.00", team: "TV Kapellen 2", teamHome: "TV Kapellen 2", teamAway: "TV Kapellen 3", isHome: true, homeScore: 3, awayScore: 7, homeLegs: 10, awayLegs: 16, tabellenplatz: 11, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 12, spieltag: 2, date: "2026-09-19", time: "19.00", team: "TV Kapellen 2", teamHome: "Die Wardter Darter", teamAway: "TV Kapellen 2", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Am Kerkend 12, 46509 Xanten" },
+        { id: 13, spieltag: 3, date: "2026-09-26", time: "19.00", team: "TV Kapellen 2", teamHome: "The Red Lions Xanten 1", teamAway: "TV Kapellen 2", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Heinrich-Lensing-Str. 72b, 46509 Xanten" },
+        { id: 14, spieltag: 4, date: "2026-10-10", time: "19.00", team: "TV Kapellen 2", teamHome: "TV Kapellen 2", teamAway: "SV Menzelen 1925", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 15, spieltag: 5, date: "2026-10-24", time: "19.00", team: "TV Kapellen 2", teamHome: "DSC Goch 4", teamAway: "TV Kapellen 2", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Gartenstr. 9, 47574 Goch" },
+        { id: 16, spieltag: 6, date: "2026-11-07", time: "19.00", team: "TV Kapellen 2", teamHome: "Triple Inn Issum 2", teamAway: "TV Kapellen 2", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Kapellener Str. 136, 47661 Issum" },
+        { id: 17, spieltag: 7, date: "2026-11-14", time: "19.00", team: "TV Kapellen 2", teamHome: "TV Kapellen 2", teamAway: "Hart am Draht", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 18, spieltag: 8, date: "2026-11-28", time: "19.00", team: "TV Kapellen 2", teamHome: "TV Kapellen 2", teamAway: "Rumelner TV 3", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 19, spieltag: 9, date: "2027-01-09", time: "19.00", team: "TV Kapellen 2", teamHome: "TV Kapellen 2", teamAway: "DSC Goch 3", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+
+        { id: 20, spieltag: 1, date: "2026-09-06", time: "14.00", team: "TV Kapellen 1", teamHome: "Rumelner TV 2", teamAway: "TV Kapellen 1", isHome: false, homeScore: 4, awayScore: 6, homeLegs: 23, awayLegs: 21, tabellenplatz: 3, venue: "Am Sportplatz 15, 47239 Duisburg" },
+        { id: 21, spieltag: 2, date: "2026-09-19", time: "19.00", team: "TV Kapellen 1", teamHome: "TV Kapellen 1", teamAway: "Kaiser Dart Aachen 3", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 22, spieltag: 3, date: "2026-09-26", time: "19.00", team: "TV Kapellen 1", teamHome: "TV Kapellen 1", teamAway: "SDC Dart Vaders Kempen", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 23, spieltag: 4, date: "2026-10-10", time: "19.00", team: "TV Kapellen 1", teamHome: "1. Dart Club Lobberich 1988 e.V. 3", teamAway: "TV Kapellen 1", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "St-Barbara-Str. 45c, 41379 Brüggen" },
+        { id: 24, spieltag: 5, date: "2026-10-24", time: "19.00", team: "TV Kapellen 1", teamHome: "TV Kapellen 1", teamAway: "Hot Shots Neuss 3", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 25, spieltag: 6, date: "2026-11-07", time: "19.00", team: "TV Kapellen 1", teamHome: "TV Kapellen 1", teamAway: "1. Dartsportverein Jülich e.V.", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 26, spieltag: 7, date: "2026-11-14", time: "19.00", team: "TV Kapellen 1", teamHome: "1. SDVW Ocky Bullboa e.V. 1", teamAway: "TV Kapellen 1", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Wevelinghovener Straße, 41515 Grevenbroich" },
+        { id: 27, spieltag: 8, date: "2026-11-28", time: "19.00", team: "TV Kapellen 1", teamHome: "Kaiser Dart Aachen 2", teamAway: "TV Kapellen 1", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Wevelinghovener Straße, 41515 Grevenbroich" },
+        { id: 28, spieltag: 9, date: "2027-01-09", time: "19.00", team: "TV Kapellen 1", teamHome: "Dart Simpsons", teamAway: "TV Kapellen 1", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Römerstrasse 49, 47638 Straelen" },
+
+        { id: 29, spieltag: 1, date: "2026-09-04", time: "20.00", team: "TV Kapellen 4", teamHome: "TV Kapellen 4", teamAway: "DC Herongen 1", isHome: true, homeScore: 1, awayScore: 9, homeLegs: 11, awayLegs: 28, tabellenplatz: 9, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 30, spieltag: 2, date: "2026-09-19", time: "19.00", team: "TV Kapellen 4", teamHome: "Berka Darts 1", teamAway: "TV Kapellen 4", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Xantener Str. 96, 47495 Rheinberg" },
+        { id: 31, spieltag: 3, date: "2026-09-25", time: "20.00", team: "TV Kapellen 4", teamHome: "TV Kapellen 4", teamAway: "Gelderner DC 5", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 32, spieltag: 4, date: "2026-10-10", time: "18.00", team: "TV Kapellen 4", teamHome: "TV Kapellen 4", teamAway: "TVK 4 Spielfrei", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 33, spieltag: 5, date: "2026-10-24", time: "18.00", team: "TV Kapellen 4", teamHome: "Gelderner DC 3 U18", teamAway: "TV Kapellen 4", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Karl Arnold Str. 6, 47608 Geldern" },
+        { id: 34, spieltag: 6, date: "2026-11-06", time: "20.00", team: "TV Kapellen 4", teamHome: "TV Kapellen 4", teamAway: "Berka Darts 2", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 35, spieltag: 7, date: "2026-11-14", time: "19.00", team: "TV Kapellen 4", teamHome: "DC Herongen 2", teamAway: "TV Kapellen 4", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Beekerstraße 46, 47638 Straelen" },
+        { id: 36, spieltag: 8, date: "2026-11-28", time: "19.00", team: "TV Kapellen 4", teamHome: "DC Ally Polly Mehrhoog 2", teamAway: "TV Kapellen 4", isHome: false, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Am Bahndamm 2, 46459 Rees-Haldern" },
+        { id: 37, spieltag: 9, date: "2027-01-08", time: "20.00", team: "TV Kapellen 4", teamHome: "TV Kapellen 4", teamAway: "26er DC", isHome: true, homeScore: null, awayScore: null, homeLegs: null, awayLegs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" }
     ];
 
-    const schedule = {
-        "2026-09-05": "TV Kapellen 1919 e.V. 2",
-        "2026-09-19": "The Red Lions Xanten 1",
-        "2026-09-26": "Die Wardter Darter",
-        "2026-10-10": "Triple Inn Issum 2",
-        "2026-10-24": "SV Menzelen 1925",
-        "2026-11-07": "DSC Goch 4",
-        "2026-11-14": "Rumelner TV 3",
-        "2026-11-28": "Hart am Draht",
-        "2027-01-09": "DSC Goch 3"
-    };
+    let statSelectedTeam = "TV Kapellen 1";
+    let displaySelectedTeam = "all";
+    let selectedType = "all";
+    let selectedSpieltag = "all";
 
-    const opponentRosters = {
-        "DSC Goch 3": ["Lucas Keisers", "Patryk Tajdus", "Juri Lambert", "Jannik Lommen", "Manfred Michels", "Xavier Tomalla", "Björn Janssen", "Antoni Rolniczak", "Jonas Neiling", "Tim Knops", "Sven Stiebing", "Lennart Upmeyer", "Lukas Kerst", "Sebastian Wouters", "Linus Kerst", "Michael Loock"],
-        "DSC Goch 4": ["Jens Robert Michels", "Ben Schweidler", "Patrick Thellmann", "Andreas Geurtsen", "Alexander Schmidt", "Mario van Elst", "Melanie Zwanziger", "Kevin van Elst", "Tobias Klamp", "Hans Günther Seidl", "Marco Hofkens", "Maximilian Henn", "Jörg Hillmann", "Michael Schweidler", "Hans-Jürgen Otto", "Adrian Hoppe", "Justus Kilzer", "Holger Stayen", "Niklas Krämer"],
-        "Die Wardter Darter": ["Alexander Reis", "Narayan Amanupunnjo", "Marvin Loth", "Ralf Graumann", "Christian Dederle", "Daniel Venhoff", "Marius Bußmann", "Rainer Staymann", "Martin Wegner", "Timo von Scheidt", "André Kaufels"],
-        "Hart am Draht": ["Ann-Kathrin Brugmann", "Justin Schraven", "Leandro Wessiepe", "Pierre Lohmann", "Marius Hergesell", "Kevin Haßheider", "Henning Felder", "Annkathrin Wanders", "Saskia Husmann", "Benjamin Borgards", "Philipp-Sascha Brugmann", "Stefan Borgards", "Marco Inghilleri", "Melanie Bendriss", "Manuela Weis", "Robin Weis", "Michael Ganther", "Thomas Zygar"],
-        "Rumelner TV 3": ["Michaela von Dahlen", "Christian Krause", "Stefan Eilbrecht", "Sebastian Pohl", "Pierre von Dahlen", "Marvin Fünfstück", "Valentin De Spirt", "Alexander Wahl", "Melanie Drees", "Mike Küffen", "Sam von Dahlen", "Sascha Schütte"],
-        "SV Menzelen 1925": ["Iris Reimer", "Julian Keisers", "Erich Janik", "Martin Haberstroh", "Johannes Wynen", "Thomas Kiwitt", "Robert Giesen", "Christoph Luschgy", "Tanja Wynen", "Sven Krams", "Stephan Kempkes", "Daniel Kempkes", "Markus Reimer"],
-        "TV Kapellen 1919 e.V. 2": ["Philip Möller", "Markus Elgersma", "Christian Schreiber", "Dominik Herz", "Thomas Franzen", "Danny Voß", "Markus Thiele", "Daniel Simanowitz", "Florian Weindorf", "Holger Weberpold", "Andre Pogoda"],
-        "The Red Lions Xanten 1": ["Sebastian ALosery", "Jan Pötters", "Stephan Reintges", "Raphael Wefers", "Kai Maas", "Dustin Stenzel", "Tobias Reintges", "Björn Hesse"],
-        "Triple Inn Issum 2": ["Lukas Helmes", "Sarah Hillejan", "Simon Hillejan", "Thomas Liebenow", "Marcel Angenendt", "Hans-Willi Hollick", "Joshua Jäschke", "Stefan Hanauer", "Michael Heinen", "Stefan Klein", "Christoph Passens", "Karl-Heinz Grimm", "Daniel Moschüring", "Michael Delbeck", "Sascha Rudies"]
-    };
-
-    document.addEventListener("DOMContentLoaded", () => {
-        loadDataFromSupabase();
-        initAdminDropdowns();
-        onBlockChanged();
-    });
-
-    function initAdminDropdowns() {
-        let dateSelect = document.getElementById("newDatumSelect");
-        dateSelect.innerHTML = "";
-        let index = 1;
-        for (let [date, opponent] of Object.entries(schedule)) {
-            let opt = document.createElement("option");
-            opt.value = date;
-            opt.text = `Spieltag ${index} (${date}) - vs. ${opponent}`;
-            opt.setAttribute("data-spieltag", index);
-            opt.setAttribute("data-opponent", opponent);
-            dateSelect.appendChild(opt);
-            index++;
-        }
-
-        fillPlayerDropdowns();
-        onDateSelected();
-    }
-
-    function fillPlayerDropdowns() {
-        let kap1 = document.getElementById("newSpielerKap1");
-        let kap2 = document.getElementById("newSpielerKap2");
-        kap1.innerHTML = ""; kap2.innerHTML = "";
-        teamKader.forEach(p => {
-            kap1.innerHTML += `<option value="${p}">${p}</option>`;
-            kap2.innerHTML += `<option value="${p}">${p}</option>`;
-        });
-    }
-
-    function onBlockChanged() {
-        let block = document.getElementById("newBlockName").value;
-        let isDoppel = block.toLowerCase().includes("doppel");
-        
-        document.getElementById("groupSpieler2").style.display = isDoppel ? "block" : "none";
-        document.getElementById("groupGegner2").style.display = isDoppel ? "block" : "none";
-
-        let partieSelect = document.getElementById("newPartieNum");
-        partieSelect.innerHTML = "";
-        let maxPartien = isDoppel ? 4 : 8;
-        for (let i = 1; i <= maxPartien; i++) {
-            let prefix = isDoppel ? "Doppel" : "Einzel";
-            partieSelect.innerHTML += `<option value="${prefix} ${i}">${prefix} ${i}</option>`;
-        }
-    }
-
-    function onDateSelected() {
-        let dateSelect = document.getElementById("newDatumSelect");
-        let selectedOpt = dateSelect.options[dateSelect.selectedIndex];
-        if (!selectedOpt) return;
-
-        document.getElementById("newSpieltagNum").value = selectedOpt.getAttribute("data-spieltag");
-        let opponentTeam = selectedOpt.getAttribute("data-opponent");
-        document.getElementById("newGegnerTeam").value = opponentTeam;
-
-        let g1 = document.getElementById("newGegnerName1");
-        let g2 = document.getElementById("newGegnerName2");
-        g1.innerHTML = ""; g2.innerHTML = "";
-        let roster = opponentRosters[opponentTeam] || [];
-        roster.forEach(p => {
-            g1.innerHTML += `<option value="${p}">${p}</option>`;
-            g2.innerHTML += `<option value="${p}">${p}</option>`;
-        });
-    }
-
-    async function loadDataFromSupabase() {
-        const btn = document.getElementById("refreshBtn");
-        if(btn) btn.textContent = "⏳ Lade...";
-
+    // Supabase Synchronisation
+    async function loadFromCloud() {
         try {
-            document.getElementById("loadingMessage").style.display = "block";
-            const { data: spieltageData, error } = await supabaseClient
-                .from('spieltage')
-                .select(`*, matches (*, scoring_stats (*))`)
-                .order('spieltag_nummer', { ascending: false });
+            let { data, error } = await supabaseClient
+                .from('dart_app')
+                .select('payload')
+                .eq('id', 'tv_kapellen_darts')
+                .single();
 
-            if (error) throw error;
-
-            if (!spieltageData || spieltageData.length === 0) {
-                document.getElementById("loadingMessage").innerHTML = "⚠️ Keine Daten für Team 3 in Supabase vorhanden. Nutze den Admin-Login!";
-                if(btn) btn.textContent = "🔄 Aktualisieren";
-                return;
-            }
-
-            processSupabaseData(spieltageData);
-            document.getElementById("loadingMessage").style.display = "none";
-            document.getElementById("statsGrid").style.display = "grid";
-            document.getElementById("navLinks").style.display = "flex";
-            if(btn) btn.textContent = "🔄 Aktualisieren";
-        } catch (error) {
-            console.error(error);
-            document.getElementById("loadingMessage").innerHTML = "⚠️ Fehler beim Laden.";
-        }
-    }
-
-    function getShortLegsList(dartsStr) {
-        if (!dartsStr) return "—";
-        let parts = dartsStr.split(',').map(s => s.trim()).filter(s => s !== "");
-        let validLegs = parts.filter(s => {
-            let n = parseInt(s);
-            return !isNaN(n) && n >= 9 && n <= 18;
-        });
-        if (validLegs.length === 0) return "—";
-        return validLegs.join(", ");
-    }
-
-    function processSupabaseData(spieltageRows) {
-        let spieltageMap = {};
-        let spielerStats = {};
-        
-        teamKader.forEach(p => {
-            spielerStats[p] = { 
-                siege: 0, niederlagen: 0, count140: 0, hunderteachtziger: 0, topFinish: 0, bestLeg: 99,
-                s60: 0, s80: 0, s100: 0 
-            };
-        });
-
-        spieltageRows.forEach(stRow => {
-            let sNum = stRow.spieltag_nummer;
-            if (!spieltageMap[sNum]) {
-                spieltageMap[sNum] = {
-                    nummer: sNum, datum: stRow.datum || "", gegnerTeam: stRow.gegner_team || "Gegner",
-                    endergebnis: stRow.endergebnis || "", bloecke: {}, alleSpieler: new Set()
-                };
-            }
-
-            let st = spieltageMap[sNum];
-            let matches = stRow.matches || [];
-
-            matches.forEach(m => {
-                let blockName = m.block_name || "1. Block";
-                if (!st.bloecke[blockName]) st.bloecke[blockName] = [];
-
-                let scoring = (m.scoring_stats && m.scoring_stats.length > 0) ? m.scoring_stats[0] : { score_60: 0, score_80: 0, score_100: 0, score_140: 0, score_180: 0, high_finish: 0 };
-
-                let matchObj = {
-                    id: m.id, spieler: m.spieler_kapellen, gegner: m.gegner_name,
-                    ergebnis: m.ergebnis || "-:-", avg: m.avg || "", scoring: scoring, darts: m.darts || ""
-                };
-
-                st.bloecke[blockName].push(matchObj);
-                let beteiligte = m.spieler_kapellen.split("/").map(s => s.trim());
-                beteiligte.forEach(subP => { if(subP) st.alleSpieler.add(subP.toLowerCase()); });
-
-                let isDoppel = blockName.toLowerCase().includes("doppel") || m.spieler_kapellen.includes("/");
-                if (isDoppel) return;
-
-                let isWin = false, isLoss = false;
-                if (m.ergebnis && m.ergebnis.includes(":")) {
-                    let parts = m.ergebnis.split(":");
-                    let p1 = parseInt(parts[0]) || 0, p2 = parseInt(parts[1]) || 0;
-                    if (p1 > p2) isWin = true; else if (p2 > p1) isLoss = true;
-                }
-
-                beteiligte.forEach(subP => {
-                    let tk = teamKader.find(t => t.toLowerCase() === subP.toLowerCase());
-                    if (tk) {
-                        if (isWin) spielerStats[tk].siege++;
-                        if (isLoss) spielerStats[tk].niederlagen++;
-                        spielerStats[tk].count140 += (scoring.score_140 || 0);
-                        spielerStats[tk].s60 += (scoring.score_60 || 0);
-                        spielerStats[tk].s80 += (scoring.score_80 || 0);
-                        spielerStats[tk].s100 += (scoring.score_100 || 0);
-                        spielerStats[tk].hunderteachtziger += (scoring.score_180 || 0);
-                        
-                        let hf = scoring.high_finish || 0;
-                        if (hf > spielerStats[tk].topFinish) spielerStats[tk].topFinish = hf;
-
-                        let partsArr = (m.darts || "").split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n >= 9 && n <= 18);
-                        if (partsArr.length > 0) {
-                            let bestThisMatch = Math.min(...partsArr);
-                            if (bestThisMatch < spielerStats[tk].bestLeg) {
-                                spielerStats[tk].bestLeg = bestThisMatch;
-                            }
-                        }
-                    }
-                });
-            });
-        });
-
-        renderHighlightsTable(spielerStats);
-        renderScoringTable(spielerStats);
-        renderMatchdays(spieltageMap);
-    }
-
-    function renderHighlightsTable(stats) {
-        let sorted = teamKader.map(name => ({ name, ...stats[name] })).sort((a,b) => b.siege - a.siege);
-        let tbody = document.getElementById("highlightsTableBody");
-        tbody.innerHTML = "";
-        sorted.forEach((p, idx) => {
-            let slDisplay = (p.bestLeg >= 9 && p.bestLeg <= 18) ? `<span style="background:#0284c7; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">${p.bestLeg}</span>` : '<span style="color:#64748b;">—</span>';
-            let hfDisplay = p.topFinish > 0 ? `<span style="background:#ec4899; color:#fff; padding:2px 6px; border-radius:4px; font-weight:bold;">${p.topFinish}</span>` : '<span style="color:#64748b;">—</span>';
-
-            tbody.innerHTML += `
-                <tr class="hl-player-row" data-player-name="${p.name.toLowerCase()}">
-                    <td style="text-align: center; color: #f59e0b; font-weight:bold;">${idx + 1}</td>
-                    <td style="font-weight: bold;">${p.name}</td>
-                    <td style="text-align: center; color: #34d399; font-weight: bold;">${p.siege}</td>
-                    <td style="text-align: center; color: #f87171; font-weight: bold;">${p.niederlagen}</td>
-                    <td style="text-align: center; color: #f59e0b; font-weight: bold;">${p.hunderteachtziger}x</td>
-                    <td style="text-align: center;">${slDisplay}</td>
-                    <td style="text-align: center;">${hfDisplay}</td>
-                </tr>`;
-        });
-    }
-
-    function renderScoringTable(stats) {
-        let sorted = teamKader.map(name => ({ name, ...stats[name], total: stats[name].s60 + stats[name].s80 + stats[name].s100 + stats[name].count140 })).sort((a,b) => b.total - a.total);
-        let tbody = document.getElementById("scoringTableBody");
-        tbody.innerHTML = "";
-        sorted.forEach((p, idx) => {
-            let d140 = p.count140 > 0 ? `<span class="badge-140">${p.count140}</span>` : '<span style="color:#64748b;">—</span>';
-            tbody.innerHTML += `
-                <tr class="hl-player-row" data-player-name="${p.name.toLowerCase()}">
-                    <td style="text-align: center; color: #f59e0b; font-weight:bold;">${idx + 1}</td>
-                    <td style="font-weight: bold;">${p.name}</td>
-                    <td style="text-align: center;" class="col-60">${p.s60}</td>
-                    <td style="text-align: center;" class="col-80">${p.s80}</td>
-                    <td style="text-align: center;" class="col-100">${p.s100}</td>
-                    <td style="text-align: center;" class="col-140">${d140}</td>
-                </tr>`;
-        });
-    }
-
-    let globalMatchStore = {};
-
-    function renderMatchdays(map) {
-        let container = document.getElementById("spieltageContainer");
-        let navLinks = document.getElementById("navLinks");
-        container.innerHTML = ""; navLinks.innerHTML = "";
-        Object.keys(map).sort((a,b) => b - a).forEach(key => {
-            let st = map[key];
-            navLinks.innerHTML += `<a href="#spieltag-${st.nummer}">Spieltag ${st.nummer}</a>`;
-
-            let kapScore = 0, gegnerScore = 0;
-            if (st.endergebnis && st.endergebnis.includes(":")) {
-                let parts = st.endergebnis.split(":");
-                kapScore = parseInt(parts[0]) || 0;
-                gegnerScore = parseInt(parts[1]) || 0;
-            }
-
-            let kapBadgeClass = "team-badge neutral";
-            let gegnerBadgeClass = "team-badge neutral";
-
-            if (kapScore > gegnerScore) {
-                kapBadgeClass = "team-badge winner";
-            } else if (gegnerScore > kapScore) {
-                gegnerBadgeClass = "team-badge winner";
-            }
-
-            let cardHtml = `<div class="card" id="spieltag-${st.nummer}">
-                <div class="card-header">
-                    <div class="spieltag-label">SPIELTAG ${st.nummer} • ${st.datum}</div>
-                    <div class="matchday-title-box">
-                        <span class="${kapBadgeClass}">TV Kapellen 3</span>
-                        <span class="matchday-score">${st.endergebnis || '-:-'}</span>
-                        <span class="${gegnerBadgeClass}">${st.gegnerTeam}</span>
-                    </div>
-                </div>`;
-
-            let counter = 1;
-            Object.keys(st.bloecke).forEach(bTitle => {
-                let lowerB = bTitle.toLowerCase();
-                let badgeClass = "block-badge";
-                if (lowerB.includes("doppel")) {
-                    badgeClass += " doppel";
-                } else if (lowerB.includes("2. block")) {
-                    badgeClass += " einzel-2";
-                } else {
-                    badgeClass += " einzel-1";
-                }
-
-                cardHtml += `<div class="block-title-container"><span class="${badgeClass}">${bTitle}</span></div>`;
-                st.bloecke[bTitle].forEach(m => {
-                    globalMatchStore[m.id] = m;
-                    
-                    let leftWins = false, rightWins = false;
-                    if (m.ergebnis && m.ergebnis.includes(":")) {
-                        let parts = m.ergebnis.split(":");
-                        if (parseInt(parts[0]) > parseInt(parts[1])) leftWins = true;
-                        else if (parseInt(parts[1]) > parseInt(parts[0])) rightWins = true;
-                    }
-                    let leftHtml = m.spieler;
-                    let rightHtml = m.gegner;
-                    if (leftWins) leftHtml = `<span class="winner-name">${m.spieler}</span>`;
-                    else if (rightWins) rightHtml = `<span class="winner-name">${m.gegner}</span>`;
-
-                    cardHtml += `<div class="match-row" onclick="openModal(${m.id})"><div class="match-num">${counter++}</div><div class="match-players"><div class="player-side left">${leftHtml} <span class="avg-tag">(${m.avg || '—'})</span></div><div class="score-tag">${m.ergebnis}</div><div class="player-side right">${rightHtml}</div></div><div class="stats-icon">📊</div></div>`;
-                });
-            });
-            cardHtml += `</div>`;
-            container.innerHTML += cardHtml;
-        });
-    }
-
-    function openModal(id) {
-        let m = globalMatchStore[id];
-        if(!m) return;
-        let sc = m.scoring;
-
-        document.getElementById("modalTitle").innerText = `${m.spieler} vs. ${m.gegner}`;
-        
-        let avgDisplay = m.avg ? m.avg : '—';
-        let dartsDisplay = m.darts ? m.darts : 'Keine Leg-Darts eingetragen';
-        let shortLegsText = getShortLegsList(m.darts);
-
-        document.getElementById("modalBody").innerHTML = `
-            <div style="text-align:center; font-size: 20px; font-weight:900; color:#f59e0b; margin-bottom:15px; letter-spacing:1px;">Ergebnis: ${m.ergebnis}</div>
-            
-            <div class="popup-section-title">Averages</div>
-            <table class="popup-table">
-                <thead><tr><th>Spieler / Paar</th><th style="text-align:center;">3-Dart Avg</th></tr></thead>
-                <tbody><tr><td>${m.spieler}</td><td style="color:#f59e0b; font-weight:bold;">${avgDisplay}</td></tr></tbody>
-            </table>
-
-            <div class="popup-section-title">Darts pro Leg</div>
-            <table class="popup-table">
-                <thead><tr><th>Leg</th><th style="text-align:center;">Geworfene Darts</th></tr></thead>
-                <tbody><tr><td colspan="2" style="text-align:center; color:#94a3b8; font-style:italic;">${dartsDisplay}</td></tr></tbody>
-            </table>
-
-            <div class="popup-section-title">Scoring</div>
-            <table class="popup-table">
-                <thead>
-                    <tr>
-                        <th class="popup-scoring-th" style="text-align:left;">${m.spieler}</th>
-                        <th class="popup-scoring-th">60+</th>
-                        <th class="popup-scoring-th">80+</th>
-                        <th class="popup-scoring-th">100+</th>
-                        <th class="popup-scoring-th">140+</th>
-                        <th class="popup-scoring-th">180</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>${m.spieler}</td>
-                        <td>${sc.score_60 || 0}</td>
-                        <td>${sc.score_80 || 0}</td>
-                        <td>${sc.score_100 || 0}</td>
-                        <td>${sc.score_140 || 0}</td>
-                        <td>${sc.score_180 || 0}</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="popup-section-title">Highlights Match</div>
-            <div class="popup-highlights-box">
-                <div>🎯 <b>180er:</b> ${sc.score_180 || 0}x</div>
-                <div>🔥 <b>High Finish:</b> ${sc.high_finish || 0}</div>
-                <div>⚡ <b>Short Leg:</b> <span style="color:#38bdf8; font-weight:bold;">${shortLegsText}</span></div>
-            </div>
-        `;
-        document.getElementById("matchModal").style.display = "flex";
-    }
-
-    function closeModal() { document.getElementById("matchModal").style.display = "none"; }
-    function openAdminModal() { document.getElementById("adminModal").style.display = "flex"; }
-    function closeAdminModal() { document.getElementById("adminModal").style.display = "none"; }
-
-    async function adminLogin() {
-        const email = document.getElementById("adminEmail").value;
-        const password = document.getElementById("adminPassword").value;
-        const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) document.getElementById("loginError").textContent = "Fehler: " + error.message;
-        else { document.getElementById("adminLoginForm").style.display = "none"; document.getElementById("adminDashboard").style.display = "block"; }
-    }
-    async function adminLogout() {
-        await supabaseClient.auth.signOut();
-        document.getElementById("adminDashboard").style.display = "none";
-        document.getElementById("adminLoginForm").style.display = "block";
-        closeAdminModal();
-    }
-
-    async function submitNewMatch(event) {
-        event.preventDefault();
-        let dateSelect = document.getElementById("newDatumSelect");
-        let selectedOpt = dateSelect.options[dateSelect.selectedIndex];
-        let sNum = parseInt(selectedOpt.getAttribute("data-spieltag"));
-        let datum = dateSelect.value;
-        let gegnerTeam = selectedOpt.getAttribute("data-opponent");
-
-        let endstand = document.getElementById("newEndstand").value;
-        let blockName = document.getElementById("newBlockName").value;
-        let partieNum = document.getElementById("newPartieNum").value;
-        let isDoppel = blockName.toLowerCase().includes("doppel");
-
-        let spielerKap = document.getElementById("newSpielerKap1").value;
-        let gegnerName = document.getElementById("newGegnerName1").value;
-
-        if (isDoppel) {
-            let kap2 = document.getElementById("newSpielerKap2").value;
-            let geg2 = document.getElementById("newGegnerName2").value;
-            spielerKap = `${spielerKap} / ${kap2}`;
-            gegnerName = `${gegnerName} / ${geg2}`;
-        }
-
-        let fullBlockName = `${blockName} (${partieNum})`;
-        let ergebnis = document.getElementById("newErgebnis").value;
-        let avg = document.getElementById("newAvg").value;
-        let darts = document.getElementById("newDarts").value.trim();
-
-        let s60 = parseInt(document.getElementById("score60").value) || 0;
-        let s80 = parseInt(document.getElementById("score80").value) || 0;
-        let s100 = parseInt(document.getElementById("score100").value) || 0;
-        let s140 = parseInt(document.getElementById("score140").value) || 0;
-        let s180 = parseInt(document.getElementById("score180").value) || 0;
-        let highFinish = parseInt(document.getElementById("highFinish").value) || 0;
-
-        try {
-            let { data: existingSt } = await supabaseClient.from('spieltage').select('id').eq('spieltag_nummer', sNum).single();
-            let spieltagId;
-            if (!existingSt) {
-                let { data: newSt, error: stErr } = await supabaseClient.from('spieltage').insert([{ spieltag_nummer: sNum, datum: datum, gegner_team: gegnerTeam, endergebnis: endstand }]).select().single();
-                if (stErr) throw stErr;
-                spieltagId = newSt.id;
+            if (data && data.payload && Array.isArray(data.payload)) {
+                rawMatches = data.payload;
+                document.getElementById('syncStatus').textContent = '● Cloud Verbunden';
+                document.getElementById('syncStatus').style.color = '#2ea043';
             } else {
-                spieltagId = existingSt.id;
-                await supabaseClient.from('spieltage').update({ endergebnis: endstand, datum: datum, gegner_team: gegnerTeam }).eq('id', spieltagId);
+                saveToCloud(); // Initial speichern
             }
+        } catch (e) {
+            console.log('Cloud Lade-Hinweis:', e);
+        }
+        initApp();
+    }
 
-            let { data: newMatch, error: mErr } = await supabaseClient.from('matches').insert([{
-                spieltag_id: spieltagId, block_name: fullBlockName, spieler_kapellen: spielerKap,
-                gegner_name: gegnerName, ergebnis: ergebnis, avg: avg ? parseFloat(avg) : null, darts: darts
-            }]).select().single();
-            if (mErr) throw mErr;
+    async function saveToCloud() {
+        try {
+            let { error } = await supabaseClient
+                .from('dart_app')
+                .upsert({ id: 'tv_kapellen_darts', payload: rawMatches });
 
-            let { error: sErr } = await supabaseClient.from('scoring_stats').insert([{
-                match_id: newMatch.id, score_60: s60, score_80: s80, score_100: s100, score_140: s140, score_180: s180, high_finish: highFinish
-            }]);
-            if (sErr) throw sErr;
-
-            alert("✓ Match & Scoring-Werte erfolgreich für Team 3 gespeichert!");
-            document.getElementById("newMatchForm").reset();
-            initAdminDropdowns();
-            onBlockChanged();
-            closeAdminModal();
-            loadDataFromSupabase();
-        } catch (err) {
-            alert("⚠️ Fehler: " + err.message);
+            if (error) {
+                document.getElementById('syncStatus').textContent = '● Sync Fehler';
+                document.getElementById('syncStatus').style.color = '#f85149';
+            } else {
+                document.getElementById('syncStatus').textContent = '● Gespeichert';
+                document.getElementById('syncStatus').style.color = '#2ea043';
+            }
+        } catch (e) {
+            console.error('Netzwerkfehler:', e);
         }
     }
 
-    function performLiveSearch() {
-        const q = document.getElementById('playerSearchInput').value.toLowerCase().trim();
-        document.querySelectorAll('.hl-player-row').forEach(row => {
-            let name = row.getAttribute('data-player-name') || '';
-            if (!q) row.classList.remove('row-faded', 'row-matched');
-            else if (name.includes(q)) { row.classList.add('row-matched'); row.classList.remove('row-faded'); }
-            else { row.classList.add('row-faded'); row.classList.remove('row-matched'); }
+    function toggleAdminMode() {
+        const adminCard = document.getElementById('adminCard');
+        if (isAdmin) {
+            isAdmin = false;
+            adminCard.style.display = 'none';
+            initApp();
+            return;
+        }
+        let pin = prompt("Bitte Admin-PIN eingeben:");
+        if (pin === ADMIN_PIN) {
+            isAdmin = true;
+            adminCard.style.display = 'block';
+            populateAdminDropdowns();
+            renderAdminInputs();
+        } else if (pin !== null) {
+            alert("Falsche PIN!");
+        }
+    }
+
+    function populateAdminDropdowns() {
+        const select = document.getElementById("adminSpieltagSelect");
+        select.innerHTML = '';
+        const spieltage = [...new Set(rawMatches.map(m => m.spieltag))].sort((a, b) => a - b);
+        spieltage.forEach(st => {
+            let opt = document.createElement("option");
+            opt.value = st;
+            opt.textContent = `${st}. Spieltag`;
+            if (st === adminCurrentSpieltag) opt.selected = true;
+            select.appendChild(opt);
         });
     }
-    </script>
+
+    function changeAdminSpieltag(val) {
+        adminCurrentSpieltag = parseInt(val);
+        renderAdminInputs();
+    }
+
+    function renderAdminInputs() {
+        document.getElementById('adminSpieltagLabel').textContent = `${adminCurrentSpieltag}. Spieltag`;
+        let container = document.getElementById('adminMatchInputsContainer');
+        container.innerHTML = '';
+
+        let matches = rawMatches.filter(m => m.spieltag === adminCurrentSpieltag);
+        if (matches.length === 0) {
+            container.innerHTML = `<div style="color: var(--text-muted); text-align:center; padding:10px;">Keine Spiele für diesen Spieltag.</div>`;
+            return;
+        }
+
+        matches.forEach(m => {
+            let row = document.createElement('div');
+            row.className = 'match-edit-row';
+            row.innerHTML = `
+                <div>
+                    <label>Heim (${m.team})</label>
+                    <span style="font-size:0.8rem; font-weight:bold;">${m.teamHome}</span>
+                </div>
+                <div>
+                    <label>Gast</label>
+                    <span style="font-size:0.8rem; font-weight:bold;">${m.teamAway}</span>
+                </div>
+                <div class="form-group">
+                    <label>Sets Heim</label>
+                    <input type="number" id="hs_${m.id}" class="form-control" value="${m.homeScore !== null ? m.homeScore : ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Sets Gast</label>
+                    <input type="number" id="as_${m.id}" class="form-control" value="${m.awayScore !== null ? m.awayScore : ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Legs Heim</label>
+                    <input type="number" id="hl_${m.id}" class="form-control" value="${m.homeLegs !== null ? m.homeLegs : ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Legs Gast</label>
+                    <input type="number" id="al_${m.id}" class="form-control" value="${m.awayLegs !== null ? m.awayLegs : ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Tabelle (${m.team.replace('TV Kapellen ', 'Team ')})</label>
+                    <input type="number" id="tp_${m.id}" class="form-control" value="${m.tabellenplatz !== null ? m.tabellenplatz : ''}" min="1" placeholder="Pl.">
+                </div>
+            `;
+            container.appendChild(row);
+        });
+    }
+
+    function saveAllAdminChanges() {
+        let matches = rawMatches.filter(m => m.spieltag === adminCurrentSpieltag);
+        matches.forEach(m => {
+            let hs = document.getElementById(`hs_${m.id}`).value;
+            let as = document.getElementById(`as_${m.id}`).value;
+            let hl = document.getElementById(`hl_${m.id}`).value;
+            let al = document.getElementById(`al_${m.id}`).value;
+            let tp = document.getElementById(`tp_${m.id}`).value;
+
+            m.homeScore = hs !== '' ? parseInt(hs) : null;
+            m.awayScore = as !== '' ? parseInt(as) : null;
+            m.homeLegs = hl !== '' ? parseInt(hl) : null;
+            m.awayLegs = al !== '' ? parseInt(al) : null;
+            m.tabellenplatz = tp !== '' ? parseInt(tp) : null;
+        });
+
+        saveToCloud();
+        initApp();
+        alert("Spieltag erfolgreich gespeichert!");
+    }
+
+    function initApp() {
+        populateSpieltagDropdown();
+        setAktuellenSpieltag();
+        renderMatches();
+    }
+
+    function populateSpieltagDropdown() {
+        const select = document.getElementById("spieltag-select");
+        select.innerHTML = '<option value="all">Alle Spieltage</option>';
+        
+        const spieltage = [...new Set(rawMatches.map(m => m.spieltag))].sort((a, b) => a - b);
+        spieltage.forEach(st => {
+            const option = document.createElement("option");
+            option.value = st;
+            option.textContent = `${st}. Spieltag`;
+            if (st == selectedSpieltag) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+
+    function setAktuellenSpieltag() {
+        if (rawMatches.length === 0) return;
+        const heute = new Date().toISOString().split('T')[0];
+        const naechstesSpiel = rawMatches.find(m => m.date && m.date >= heute);
+
+        if (naechstesSpiel && selectedSpieltag === "all") {
+            selectedSpieltag = naechstesSpiel.spieltag;
+            document.getElementById("spieltag-select").value = selectedSpieltag;
+        }
+    }
+
+    function getTeamBadgeClass(teamName) {
+        if (teamName.includes("1")) return "t1";
+        if (teamName.includes("2")) return "t2";
+        if (teamName.includes("3")) return "t3";
+        if (teamName.includes("4")) return "t4";
+        return "t1";
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return "";
+        if (dateStr.includes('-')) {
+            const [year, month, day] = dateStr.split('-');
+            return `${day}.${month}.${year}`;
+        }
+        return dateStr;
+    }
+
+    function renderMatches() {
+        const container = document.getElementById("matches-container");
+        container.innerHTML = "";
+
+        // STATISTIKEN BERECHNEN
+        let statsPlayed = 0;
+        let statsPoints = 0;
+        let statsWins = 0;
+        let statsDraws = 0;
+        let statsLosses = 0;
+        let statsSetsFor = 0;
+        let statsSetsAgainst = 0;
+        let statsLegsFor = 0;
+        let statsLegsAgainst = 0;
+
+        rawMatches.forEach(match => {
+            if (match.team === statSelectedTeam) {
+                const isPlayed = match.homeScore !== null && match.awayScore !== null && !isNaN(match.homeScore) && !isNaN(match.awayScore);
+                if (isPlayed) {
+                    statsPlayed++;
+                    const h = match.homeScore;
+                    const a = match.awayScore;
+                    const hLegs = match.homeLegs !== null ? match.homeLegs : 0;
+                    const aLegs = match.awayLegs !== null ? match.awayLegs : 0;
+
+                    const kapellenScore = match.isHome ? h : a;
+                    const opponentScore = match.isHome ? a : h;
+
+                    const kapellenLegs = match.isHome ? hLegs : aLegs;
+                    const opponentLegs = match.isHome ? aLegs : hLegs;
+
+                    statsSetsFor += kapellenScore;
+                    statsSetsAgainst += opponentScore;
+
+                    statsLegsFor += kapellenLegs;
+                    statsLegsAgainst += opponentLegs;
+
+                    if (kapellenScore > opponentScore) {
+                        statsPoints += 2;
+                        statsWins++;
+                    } else if (kapellenScore < opponentScore) {
+                        statsLosses++;
+                    } else {
+                        statsPoints += 1;
+                        statsDraws++;
+                    }
+                }
+            }
+        });
+
+        // Tabellenplatz ermitteln
+        const teamMatchesWithPlace = rawMatches
+            .filter(m => m.team === statSelectedTeam && m.tabellenplatz !== null && !isNaN(m.tabellenplatz))
+            .sort((a, b) => b.spieltag - a.spieltag);
+
+        const placeEl = document.getElementById("stats-place");
+        placeEl.className = "value";
+
+        if (teamMatchesWithPlace.length > 0) {
+            const currentPlace = teamMatchesWithPlace[0].tabellenplatz;
+            placeEl.textContent = `${currentPlace}.`;
+
+            if (currentPlace === 1) placeEl.classList.add("place-gold");
+            else if (currentPlace <= 3) placeEl.classList.add("place-top");
+            else if (currentPlace <= 6) placeEl.classList.add("place-mid");
+            else placeEl.classList.add("place-low");
+        } else {
+            placeEl.textContent = "-";
+        }
+
+        const teamTotalMatches = rawMatches.filter(m => m.team === statSelectedTeam).length;
+        document.getElementById("stats-played").textContent = `${statsPlayed} / ${teamTotalMatches}`;
+        document.getElementById("stats-points").textContent = statsPoints;
+        document.getElementById("stats-record").textContent = `${statsWins} - ${statsDraws} - ${statsLosses}`;
+        document.getElementById("stats-sets").textContent = `${statsSetsFor} : ${statsSetsAgainst}`;
+        document.getElementById("stats-legs").textContent = `${statsLegsFor} : ${statsLegsAgainst}`;
+
+        // SPIELE FILTERN
+        const filteredMatches = rawMatches.filter(match => {
+            if (displaySelectedTeam !== "all" && match.team !== displaySelectedTeam) return false;
+            if (selectedType === "heim" && !match.isHome) return false;
+            if (selectedType === "auswaerts" && match.isHome) return false;
+            if (selectedSpieltag !== "all" && match.spieltag != selectedSpieltag) return false;
+
+            const isPlayed = match.homeScore !== null && match.awayScore !== null && !isNaN(match.homeScore) && !isNaN(match.awayScore);
+            if (selectedType === "played" && !isPlayed) return false;
+
+            return true;
+        });
+
+        if (filteredMatches.length === 0) {
+            container.innerHTML = `<div class="no-matches-msg">Keine Spiele für die ausgewählten Filter gefunden.</div>`;
+            return;
+        }
+
+        // Gruppierung nach Spieltag
+        const groupedBySpieltag = {};
+        filteredMatches.forEach(match => {
+            if (!groupedBySpieltag[match.spieltag]) {
+                groupedBySpieltag[match.spieltag] = [];
+            }
+            groupedBySpieltag[match.spieltag].push(match);
+        });
+
+        const sortedSpieltage = Object.keys(groupedBySpieltag).sort((a, b) => parseInt(a) - parseInt(b));
+
+        sortedSpieltage.forEach(st => {
+            const matchesForSt = groupedBySpieltag[st];
+
+            const section = document.createElement("div");
+            section.className = "spieltag-section";
+
+            const headerCard = document.createElement("div");
+            headerCard.className = "spieltag-header-card";
+            headerCard.innerHTML = `
+                <h2>${st}. Spieltag</h2>
+                <span class="badge-count">${matchesForSt.length} ${matchesForSt.length === 1 ? 'Spiel' : 'Spiele'}</span>
+            `;
+            section.appendChild(headerCard);
+
+            const grid = document.createElement("div");
+            grid.className = "matches-grid";
+
+            matchesForSt.forEach(match => {
+                const isPlayed = match.homeScore !== null && match.awayScore !== null && !isNaN(match.homeScore) && !isNaN(match.awayScore);
+
+                let statusText = "Noch nicht gespielt";
+                let statusClass = "not-played";
+                let cardOutcomeClass = "";
+
+                if (isPlayed) {
+                    const h = match.homeScore;
+                    const a = match.awayScore;
+                    const kapellenScore = match.isHome ? h : a;
+                    const opponentScore = match.isHome ? a : h;
+
+                    if (kapellenScore > opponentScore) {
+                        statusText = "Sieg (2P)";
+                        statusClass = "win";
+                        cardOutcomeClass = "win";
+                    } else if (kapellenScore < opponentScore) {
+                        statusText = "Niederlage (0P)";
+                        statusClass = "loss";
+                        cardOutcomeClass = "loss";
+                    } else {
+                        statusText = "Unentschieden (1P)";
+                        statusClass = "draw";
+                        cardOutcomeClass = "draw";
+                    }
+                }
+
+                const venueText = match.isHome 
+                    ? '📍 JZ Henri, Industriestr. 9b, 47447 Moers' 
+                    : (match.venue ? `📍 ${match.venue}` : '📍 Auswärtsspielstätte');
+
+                const card = document.createElement("div");
+                card.className = `match-card ${cardOutcomeClass}`;
+                
+                const legsInfo = isPlayed && match.homeLegs !== null && match.awayLegs !== null 
+                    ? `<div class="legs-subtext">Legs: ${match.homeLegs} : ${match.awayLegs}</div>` 
+                    : '';
+
+                card.innerHTML = `
+                    <div class="match-header">
+                        <div class="match-header-left">
+                            <span class="team-badge ${getTeamBadgeClass(match.team)}">${match.team}</span>
+                        </div>
+                        <span class="type-tag ${match.isHome ? 'heim' : 'auswaerts'}">${match.isHome ? 'Heim' : 'Auswärts'}</span>
+                    </div>
+                    <div class="match-body">
+                        <div class="match-date-info">${formatDate(match.date)} ${match.time ? '- ' + match.time + ' Uhr' : ''}</div>
+                        <div class="match-venue-info">${venueText}</div>
+                        <div class="teams-display">
+                            <span class="team-label ${match.teamHome.includes('TV Kapellen') ? 'highlight' : ''}">${match.teamHome}</span>
+                            <span class="vs">vs</span>
+                            <span class="team-label ${match.teamAway.includes('TV Kapellen') ? 'highlight' : ''}">${match.teamAway}</span>
+                        </div>
+                        <div class="result-display-container">
+                            <div class="score-row">
+                                <div class="score-badge ${isPlayed ? '' : 'empty'}">${isPlayed ? match.homeScore : '-'}</div>
+                                <span class="score-divider">:</span>
+                                <div class="score-badge ${isPlayed ? '' : 'empty'}">${isPlayed ? match.awayScore : '-'}</div>
+                            </div>
+                            ${legsInfo}
+                        </div>
+                    </div>
+                    <div class="match-footer">
+                        <span class="match-status ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            section.appendChild(grid);
+            container.appendChild(section);
+        });
+    }
+
+    function filterStatTeam(team, btn) {
+        btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        statSelectedTeam = team;
+        renderMatches();
+    }
+
+    function filterDisplayTeam(val) {
+        displaySelectedTeam = val;
+        renderMatches();
+    }
+
+    function filterType(type, btn) {
+        btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedType = type;
+        renderMatches();
+    }
+
+    function filterSpieltag(val) {
+        selectedSpieltag = val;
+        renderMatches();
+    }
+
+    window.onload = () => {
+        loadFromCloud();
+    };
+</script>
+
 </body>
 </html>
