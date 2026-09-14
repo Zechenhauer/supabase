@@ -743,20 +743,24 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         for (let i = 1; i <= 8; i++) {
             const player = document.getElementById(`admin-single-${i}`).value;
             if (player) {
-                detailsToSave.push({ spieltag_id: parseInt(matchId), kategorie: 'Einzel', spiel_nummer: i, spieler_1: player, spieler_2: null });
+                detailsToSave.push({ spieltag_id: parseInt(matchId), kategorie: 'Einzel', spiel_nummer: i, spieler_1: player, spieler_2: null, gewonnen: true });
             }
         }
         for (let i = 1; i <= 4; i++) {
             const p1 = document.getElementById(`admin-double-${i}-p1`).value;
             const p2 = document.getElementById(`admin-double-${i}-p2`).value;
             if (p1 && p2) {
-                detailsToSave.push({ spieltag_id: parseInt(matchId), kategorie: 'Doppel', spiel_nummer: i, spieler_1: p1, spieler_2: p2 });
+                detailsToSave.push({ spieltag_id: parseInt(matchId), kategorie: 'Doppel', spiel_nummer: i, spieler_1: p1, spieler_2: p2, gewonnen: true });
             }
         }
 
         await supabaseClient.from('tvk_basis_spiel_details').delete().eq('spieltag_id', matchId);
         if (detailsToSave.length > 0) {
-            await supabaseClient.from('tvk_basis_spiel_details').insert(detailsToSave);
+            const { error } = await supabaseClient.from('tvk_basis_spiel_details').insert(detailsToSave);
+            if (error) {
+                alert("Fehler beim Speichern der Spiel-Details: " + error.message);
+                return;
+            }
         }
 
         alert("Spieltag-Aufstellung & Doppel erfolgreich gespeichert!");
@@ -800,6 +804,12 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             text: text
         });
         initApp();
+    }
+
+    function openAufstellungModal(matchId, rolle) {
+        activeMatchId = matchId;
+        document.getElementById('modal-title').innerText = `Aufstellung Spieltag ${matchId} (${rolle})`;
+        document.getElementById('aufstellung-modal').style.display = 'flex';
     }
 
     function renderDashboard(matches, container) {
@@ -894,12 +904,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             `;
             container.appendChild(card);
         });
-    }
-
-    function openAufstellungModal(matchId, rolle) {
-        activeMatchId = matchId;
-        document.getElementById('modal-title').innerText = `Aufstellung Spieltag ${matchId} (${rolle})`;
-        document.getElementById('aufstellung-modal').style.display = 'flex';
     }
 
     function renderKaderAndPersonalCard(stats, container) {
