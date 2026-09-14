@@ -145,20 +145,13 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 .kader-stat-entry .val { font-size: 16px; font-weight: bold; color: var(--white); }
 .kader-stat-entry .lbl { font-size: 9px; color: var(--text-dim); text-transform: uppercase; }
 
-/* LIGA-TABELLE STYLE */
-.liga-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; background: var(--card-bg); border-radius: 8px; overflow: hidden; }
-.liga-table th { background: rgba(255,255,255,0.03); font-family: 'Poppins'; font-weight: bold; color: var(--gold); text-transform: uppercase; font-size: 11px; padding: 12px 10px; text-align: left; border-bottom: 2px solid var(--gold-dim); }
-.liga-table td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-main); }
-.liga-table tr.own-team { background: rgba(212, 175, 55, 0.25); font-weight: bold; border-left: 4px solid var(--gold); }
-.liga-table tr.own-team td { color: var(--white); }
-
 /* MISSION TILES */
 .tiled-content { display: flex; flex-direction: column; gap: 20px; }
 @media (min-width: 1281px) { .tiled-content { flex-direction: row; } }
 .tile { background: var(--card-bg); padding: 30px; border-radius: 8px; border-top: 4px solid var(--gold); flex: 1; }
 .tile i { font-size: 40px; color: var(--gold); margin-bottom: 15px; }
 
-/* ADMIN BOX */
+/* ADMIN BOX MIT SCHLOSS */
 .admin-box { background: var(--card-bg); border: 1px solid var(--gold); border-radius: 12px; padding: 25px; margin-top: 40px; display: none; }
 .admin-box input, .admin-box select { width: 100%; padding: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; margin-bottom: 12px; font-size: 14px; }
 .admin-box label { font-size: 12px; color: var(--gold); font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; }
@@ -282,70 +275,75 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         </div>
     </div>
 
-    <!-- ADMIN & EDITOR BEREICH -->
+    <!-- ADMIN & EDITOR BEREICH MIT SCHLOSS-SICHERUNG -->
     <div id="admin-section" class="admin-box">
-        <h3 style="color: var(--gold); margin-bottom: 15px;"><i class="fa-solid fa-gear"></i> Admin & Kader-Editor</h3>
-        
-        <!-- NEUEN SPIELTAG ANLEGEN -->
-        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--gold-dim); margin-bottom: 25px;">
-            <h4 style="color: var(--gold); margin-bottom: 12px;"><i class="fa-solid fa-calendar-plus"></i> Neuen Spieltag anlegen</h4>
-            <div class="double-row">
-                <div><label>Spieltag-Nr. (ID)</label><input type="number" id="new-spieltag-id" placeholder="z.B. 5"></div>
-                <div><label>Gegner</label><input type="text" id="new-spieltag-gegner" placeholder="z.B. TSV Rumeln 4"></div>
-            </div>
-            <div class="double-row">
-                <div><label>Datum</label><input type="date" id="new-spieltag-datum"></div>
-                <div><label>Uhrzeit</label><input type="text" id="new-spieltag-uhrzeit" value="19:00"></div>
-            </div>
-            <div class="double-row">
-                <div>
-                    <label>Ort (H = Heim, A = Auswärts)</label>
-                    <select id="new-spieltag-ort">
-                        <option value="H">Heim (Jugendzentrum Henri)</option>
-                        <option value="A">Auswärts</option>
-                    </select>
+        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="toggleAdminPanel()">
+            <h3 style="color: var(--gold); margin-bottom: 0;"><i class="fa-solid fa-gear"></i> Admin & Kader-Editor</h3>
+            <i id="admin-lock-icon" class="fa-solid fa-lock" style="color: var(--gold); font-size: 20px;"></i>
+        </div>
+
+        <div id="admin-content-container" style="display: none; margin-top: 20px; border-top: 1px solid rgba(212,175,55,0.2); padding-top: 20px;">
+            <!-- NEUEN SPIELTAG ANLEGEN -->
+            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--gold-dim); margin-bottom: 25px;">
+                <h4 style="color: var(--gold); margin-bottom: 12px;"><i class="fa-solid fa-calendar-plus"></i> Neuen Spieltag anlegen</h4>
+                <div class="double-row">
+                    <div><label>Spieltag-Nr. (ID)</label><input type="number" id="new-spieltag-id" placeholder="z.B. 5"></div>
+                    <div><label>Gegner</label><input type="text" id="new-spieltag-gegner" placeholder="z.B. TSV Rumeln 4"></div>
                 </div>
-                <div><label>Auswärts-Adresse (optional)</label><input type="text" id="new-spieltag-adresse" placeholder="Nur bei Auswärtsspiel nötig"></div>
+                <div class="double-row">
+                    <div><label>Datum</label><input type="date" id="new-spieltag-datum"></div>
+                    <div><label>Uhrzeit</label><input type="text" id="new-spieltag-uhrzeit" value="19:00"></div>
+                </div>
+                <div class="double-row">
+                    <div>
+                        <label>Ort (H = Heim, A = Auswärts)</label>
+                        <select id="new-spieltag-ort">
+                            <option value="H">Heim (Jugendzentrum Henri)</option>
+                            <option value="A">Auswärts</option>
+                        </select>
+                    </div>
+                    <div><label>Auswärts-Adresse (optional)</label><input type="text" id="new-spieltag-adresse" placeholder="Nur bei Auswärtsspiel nötig"></div>
+                </div>
+                <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 5px;" onclick="createNewSpieltag()">Spieltag in Datenbank anlegen</button>
             </div>
-            <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 5px;" onclick="createNewSpieltag()">Spieltag in Datenbank anlegen</button>
-        </div>
 
-        <label>Spieltag auswählen (Für Aufstellung):</label>
-        <select id="admin-match-select" onchange="loadAdminMatchData()">
-            <option value="">Spieltag wählen...</option>
-        </select>
-
-        <div style="margin-top: 15px;">
-            <h4 style="color: var(--white); font-size: 13px; margin-bottom: 6px;">Einzelspiele (1 bis 8)</h4>
-            <div id="admin-singles-container"></div>
-        </div>
-
-        <div style="margin-top: 15px;">
-            <h4 style="color: var(--white); font-size: 13px; margin-bottom: 6px;">Doppelspiele (1 bis 4)</h4>
-            <div id="admin-doubles-container"></div>
-        </div>
-        <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 15px;" onclick="saveMatchDetails()">Spieltag-Aufstellung speichern</button>
-
-        <div style="margin-top: 35px; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 20px;">
-            <h4 style="color: var(--gold); margin-bottom: 12px;"><i class="fa-solid fa-chart-simple"></i> Spieler-Statistiken bearbeiten</h4>
-            <label>Spieler auswählen:</label>
-            <select id="admin-stat-player-select" onchange="loadPlayerStatData()">
-                <option value="">Spieler wählen...</option>
+            <label>Spieltag auswählen (Für Aufstellung):</label>
+            <select id="admin-match-select" onchange="loadAdminMatchData()">
+                <option value="">Spieltag wählen...</option>
             </select>
 
-            <div class="double-row" style="margin-top: 10px;">
-                <div><label>Quote (%)</label><input type="number" step="0.01" id="stat-quote" placeholder="0.00"></div>
-                <div><label>Saison AVG</label><input type="number" step="0.01" id="stat-avg" placeholder="0.00"></div>
+            <div style="margin-top: 15px;">
+                <h4 style="color: var(--white); font-size: 13px; margin-bottom: 6px;">Einzelspiele (1 bis 8)</h4>
+                <div id="admin-singles-container"></div>
             </div>
-            <div class="double-row">
-                <div><label>Spiele</label><input type="number" id="stat-spiele" placeholder="0"></div>
-                <div><label>Siege</label><input type="number" id="stat-gewonnen" placeholder="0"></div>
+
+            <div style="margin-top: 15px;">
+                <h4 style="color: var(--white); font-size: 13px; margin-bottom: 6px;">Doppelspiele (1 bis 4)</h4>
+                <div id="admin-doubles-container"></div>
             </div>
-            <div class="double-row">
-                <div><label>Niederlagen</label><input type="number" id="stat-verloren" placeholder="0"></div>
-                <div><label>Highlights</label><input type="text" id="stat-highlights" placeholder="z.B. 180er, 120er Finish"></div>
+            <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 15px;" onclick="saveMatchDetails()">Spieltag-Aufstellung speichern</button>
+
+            <div style="margin-top: 35px; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 20px;">
+                <h4 style="color: var(--gold); margin-bottom: 12px;"><i class="fa-solid fa-chart-simple"></i> Spieler-Statistiken bearbeiten</h4>
+                <label>Spieler auswählen:</label>
+                <select id="admin-stat-player-select" onchange="loadPlayerStatData()">
+                    <option value="">Spieler wählen...</option>
+                </select>
+
+                <div class="double-row" style="margin-top: 10px;">
+                    <div><label>Saison AVG</label><input type="number" step="0.01" id="stat-avg" placeholder="0.00"></div>
+                    <div><label>Highlights</label><input type="text" id="stat-highlights" placeholder="z.B. 180er, 120er Finish"></div>
+                </div>
+                <div class="double-row">
+                    <div><label>Siege</label><input type="number" id="stat-gewonnen" placeholder="0" oninput="calcAdminQuote()"></div>
+                    <div><label>Niederlagen</label><input type="number" id="stat-verloren" placeholder="0" oninput="calcAdminQuote()"></div>
+                </div>
+                <div style="margin-bottom: 12px;">
+                    <label>Automatische Quote (%)</label>
+                    <input type="text" id="stat-quote-display" readonly placeholder="0.00%" style="background: rgba(255,255,255,0.05); color: var(--gold); font-weight: bold;">
+                </div>
+                <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 10px;" onclick="savePlayerStatistics()">Spieler-Statistik speichern</button>
             </div>
-            <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 10px;" onclick="savePlayerStatistics()">Spieler-Statistik speichern</button>
         </div>
     </div>
 </div>
@@ -356,28 +354,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         <div id="kader-list-target" class="kader-list">
             <p style="text-align:center; padding:20px;">Lade Statistiken...</p>
         </div>
-    </div>
-</div>
-
-<div class="slide-container" id="slideDoppel">
-    <h2 class="slide-title">Doppel-Rangliste</h2>
-    <div class="content-area" style="overflow-x: auto;">
-        <table class="liga-table">
-            <thead>
-                <tr>
-                    <th>Spieler 1</th>
-                    <th>Spieler 2</th>
-                    <th style="width: 40px; text-align: center;">Sp</th>
-                    <th style="width: 30px; text-align: center; color: var(--zusage);">S</th>
-                    <th style="width: 30px; text-align: center; color: var(--absage);">N</th>
-                </tr>
-            </thead>
-            <tbody id="doppel-table-body">
-                <tr>
-                    <td colspan="5" style="text-align: center; padding: 20px;">Lade Doppel-Rangliste...</td>
-                </tr>
-            </tbody>
-        </table>
     </div>
 </div>
 
@@ -459,6 +435,25 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         location.reload();
     }
 
+    function toggleAdminPanel() {
+        const content = document.getElementById('admin-content-container');
+        const icon = document.getElementById('admin-lock-icon');
+        if (content.style.display === 'none') {
+            const pin = prompt("Bitte Admin-Passwort eingeben:");
+            if (pin === "1919" || pin === "4321") {
+                content.style.display = 'block';
+                icon.className = "fa-solid fa-unlock-keyhole";
+                icon.style.color = "var(--zusage)";
+            } else {
+                alert("Falsches Passwort!");
+            }
+        } else {
+            content.style.display = 'none';
+            icon.className = "fa-solid fa-lock";
+            icon.style.color = "var(--gold)";
+        }
+    }
+
     function formatPlayerName(name) {
         if (!name) return "";
         const cleanName = name.replace(' (TC 1)', '').replace(' (MF1)', '').replace(' (MF2)', '').trim();
@@ -495,7 +490,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             const [spieltageRes, anmeldungenRes, statistikenRes, chatRes, spielDetailsRes] = await Promise.all([
                 supabaseClient.from('tvk_basis_spieltage').select('*').order('id', { ascending: true }),
                 supabaseClient.from('tvk_basis_anmeldungen').select('*'),
-                supabaseClient.from('tvk_basis_kader_statistiken').select('*').order('quote', { ascending: false }),
+                supabaseClient.from('tvk_basis_kader_statistiken').select('*'),
                 supabaseClient.from('tvk_basis_chat_nachrichten').select('*').order('created_at', { ascending: true }),
                 supabaseClient.from('tvk_basis_spiel_details').select('*')
             ]);
@@ -525,28 +520,8 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                 };
             });
 
-            // Doppel-Tabelle aus Spiel-Details berechnen
-            const doppelStatMap = {};
-            globalSpielDetails.forEach(d => {
-                if (d.kategorie === 'Doppel' && d.spieler_1 && d.spieler_2) {
-                    const pList = [d.spieler_1, d.spieler_2].sort();
-                    const key = pList[0] + "___" + pList[1];
-                    if (!doppelStatMap[key]) {
-                        doppelStatMap[key] = { spieler1: pList[0], spieler2: pList[1], spiele: 0, siege: 0, niederlagen: 0 };
-                    }
-                    doppelStatMap[key].spiele++;
-                    if (d.gewonnen) {
-                        doppelStatMap[key].siege++;
-                    } else {
-                        doppelStatMap[key].niederlagen++;
-                    }
-                }
-            });
-            const doppelRangliste = Object.values(doppelStatMap).sort((a,b) => b.siege - a.siege);
-
             renderDashboard(matches, document.getElementById('match-grid'));
             renderKaderAndPersonalCard(globalStatistiken, document.getElementById('kader-list-target'));
-            renderDoppelTable(doppelRangliste, document.getElementById('doppel-table-body'));
             renderChat(chatRes.data || [], document.getElementById('chat-messages-target'));
 
         } catch (err) {
@@ -648,12 +623,19 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         if (!playerName) return;
 
         const pStat = globalStatistiken.find(s => s.spieler.toLowerCase() === playerName.toLowerCase());
-        document.getElementById('stat-quote').value = pStat ? pStat.quote : "";
         document.getElementById('stat-avg').value = pStat ? pStat.avg : "";
-        document.getElementById('stat-spiele').value = pStat ? pStat.spiele : "";
         document.getElementById('stat-gewonnen').value = pStat ? pStat.gewonnen : "";
         document.getElementById('stat-verloren').value = pStat ? pStat.verloren : "";
         document.getElementById('stat-highlights').value = pStat ? pStat.highlights : "";
+        calcAdminQuote();
+    }
+
+    function calcAdminQuote() {
+        const g = parseInt(document.getElementById('stat-gewonnen').value) || 0;
+        const v = parseInt(document.getElementById('stat-verloren').value) || 0;
+        const total = g + v;
+        const quote = total > 0 ? (g / total) * 100 : 0;
+        document.getElementById('stat-quote-display').value = quote.toFixed(2) + '%';
     }
 
     async function savePlayerStatistics() {
@@ -663,13 +645,18 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             return;
         }
 
+        const g = parseInt(document.getElementById('stat-gewonnen').value) || 0;
+        const v = parseInt(document.getElementById('stat-verloren').value) || 0;
+        const spiele = g + v;
+        const quote = spiele > 0 ? (g / spiele) * 100 : 0;
+
         const payload = {
             spieler: playerName,
-            quote: parseFloat(document.getElementById('stat-quote').value) || 0,
+            quote: parseFloat(quote.toFixed(2)),
             avg: parseFloat(document.getElementById('stat-avg').value) || 0,
-            spiele: parseInt(document.getElementById('stat-spiele').value) || 0,
-            gewonnen: parseInt(document.getElementById('stat-gewonnen').value) || 0,
-            verloren: parseInt(document.getElementById('stat-verloren').value) || 0,
+            spiele: spiele,
+            gewonnen: g,
+            verloren: v,
             highlights: document.getElementById('stat-highlights').value || ""
         };
 
@@ -775,7 +762,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                     <strong>Spielort:</strong><br>${spielortInfo}
                 </div>`;
 
-            // Aufstellung für diesen Spieltag aus globalSpielDetails zusammenbauen
             const matchDetails = globalSpielDetails.filter(d => d.spieltag_id == m.id);
             let aufstellungHtml = "";
             if (matchDetails.length > 0) {
@@ -829,7 +815,13 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         personalContainer.style.display = 'none';
         const cleanUser = currentUser ? currentUser.replace(' (TC 1)', '').replace(' (MF1)', '').replace(' (MF2)', '').trim() : '';
 
-        const sortedStats = [...stats].sort((a, b) => b.quote - a.quote);
+        // Sortierung: 1. Nach Quote absteigend, 2. Bei Gleichstand nach AVG absteigend
+        const sortedStats = [...stats].sort((a, b) => {
+            if (b.quote !== a.quote) {
+                return b.quote - a.quote;
+            }
+            return (b.avg || 0) - (a.avg || 0);
+        });
 
         sortedStats.forEach((p, index) => {
             const row = document.createElement('div');
@@ -840,11 +832,11 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                     <div style="display:flex; align-items:center; justify-content:space-between;">
                         <div class="kader-left"><div class="kader-rank">#${index+1}</div><div class="name-p"></div></div>
                         <div class="kader-details">
-                            <div class="kader-stat-entry"><span class="val" style="color:var(--gold);">${p.quote.toFixed(2)}%</span><span class="lbl">Quote</span></div>
-                            <div class="kader-stat-entry"><span class="val">${p.avg.toFixed(2)}</span><span class="lbl">AVG</span></div>
-                            <div class="kader-stat-entry"><span class="val">${p.spiele}</span><span class="lbl">Spiele</span></div>
-                            <div class="kader-stat-entry"><span class="val" style="color:var(--zusage);">${p.gewonnen}</span><span class="lbl">G</span></div>
-                            <div class="kader-stat-entry"><span class="val" style="color:var(--absage);">${p.verloren}</span><span class="lbl">V</span></div>
+                            <div class="kader-stat-entry"><span class="val" style="color:var(--gold);">${(p.quote || 0).toFixed(2)}%</span><span class="lbl">Quote</span></div>
+                            <div class="kader-stat-entry"><span class="val">${(p.avg || 0).toFixed(2)}</span><span class="lbl">AVG</span></div>
+                            <div class="kader-stat-entry"><span class="val">${p.spiele || 0}</span><span class="lbl">Spiele</span></div>
+                            <div class="kader-stat-entry"><span class="val" style="color:var(--zusage);">${p.gewonnen || 0}</span><span class="lbl">G</span></div>
+                            <div class="kader-stat-entry"><span class="val" style="color:var(--absage);">${p.verloren || 0}</span><span class="lbl">V</span></div>
                         </div>
                     </div>${hl}
                 </div>
@@ -861,28 +853,15 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                     <div class="personal-card" style="margin-bottom: 0;">
                         <div><p style="color:var(--gold); font-size:11px; font-weight:bold; letter-spacing:2px;">DEINE LIVE PERFORMANCE</p><h3 style="font-size:24px;">Hallo, ${p.spieler}!</h3><p style="font-size:13px; margin-top:5px;"><i class="fa-solid fa-star" style="color:var(--gold);"></i> Highlights: ${p.highlights||'Keine'}</p></div>
                         <div class="personal-stats-grid">
-                            <div class="stat-box"><div class="stat-val" style="color:var(--gold);">${p.quote.toFixed(2)}%</div><div class="stat-lbl">Match-Score</div></div>
-                            <div class="stat-box"><div class="stat-val">${p.avg.toFixed(2)}</div><div class="stat-lbl">Saison AVG</div></div>
-                            <div class="stat-box"><div class="stat-val">${p.spiele}</div><div class="stat-lbl">Matches</div></div>
-                            <div class="stat-box"><div class="stat-val" style="color:var(--zusage);">${p.gewonnen}</div><div class="stat-lbl">Siege</div></div>
-                            <div class="stat-box"><div class="stat-val" style="color:var(--absage);">${p.verloren}</div><div class="stat-lbl">Niederl.</div></div>
+                            <div class="stat-box"><div class="stat-val" style="color:var(--gold);">${(p.quote || 0).toFixed(2)}%</div><div class="stat-lbl">Match-Score</div></div>
+                            <div class="stat-box"><div class="stat-val">${(p.avg || 0).toFixed(2)}</div><div class="stat-lbl">Saison AVG</div></div>
+                            <div class="stat-box"><div class="stat-val">${p.spiele || 0}</div><div class="stat-lbl">Matches</div></div>
+                            <div class="stat-box"><div class="stat-val" style="color:var(--zusage);">${p.gewonnen || 0}</div><div class="stat-lbl">Siege</div></div>
+                            <div class="stat-box"><div class="stat-val" style="color:var(--absage);">${p.verloren || 0}</div><div class="stat-lbl">Niederl.</div></div>
                         </div>
                     </div>
                 `;
             }
-        });
-    }
-
-    function renderDoppelTable(doppelData, container) {
-        container.innerHTML = '';
-        if(!doppelData || doppelData.length === 0) {
-            container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Noch keine Doppel eingetragen.</td></tr>';
-            return;
-        }
-        doppelData.forEach(row => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${formatPlayerName(row.spieler1)}</td><td>${formatPlayerName(row.spieler2)}</td><td style="text-align:center;">${row.spiele}</td><td style="text-align:center; font-weight:bold; color:var(--zusage);">${row.siege}</td><td style="text-align:center; font-weight:bold; color:var(--absage);">${row.niederlagen}</td>`;
-            container.appendChild(tr);
         });
     }
 
