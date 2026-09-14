@@ -8,8 +8,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Supabase JS Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="apple-touch-icon" href="https://drive.google.com/uc?id=1PB4X2QrrMlaRlajQEWDtJxRP2c6VTsI5">
+    <link rel="icon" sizes="192x192" href="https://drive.google.com/uc?id=1PB4X2QrrMlaRlajQEWDtJxRP2c6VTsI5">
     
     <style>
 /* 1. GLOBAL THEME & RESPONSIVE SETUP */
@@ -143,7 +143,20 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 .kader-stat-entry .val { font-size: 16px; font-weight: bold; color: var(--white); }
 .kader-stat-entry .lbl { font-size: 9px; color: var(--text-dim); text-transform: uppercase; }
 
-/* ADMIN / EINGABE BEREICH */
+/* LIGA-TABELLE STYLE */
+.liga-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; background: var(--card-bg); border-radius: 8px; overflow: hidden; }
+.liga-table th { background: rgba(255,255,255,0.03); font-family: 'Poppins'; font-weight: bold; color: var(--gold); text-transform: uppercase; font-size: 11px; padding: 12px 10px; text-align: left; border-bottom: 2px solid var(--gold-dim); }
+.liga-table td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); color: var(--text-main); }
+.liga-table tr.own-team { background: rgba(212, 175, 55, 0.25); font-weight: bold; border-left: 4px solid var(--gold); }
+.liga-table tr.own-team td { color: var(--white); }
+
+/* MISSION TILES */
+.tiled-content { display: flex; flex-direction: column; gap: 20px; }
+@media (min-width: 1281px) { .tiled-content { flex-direction: row; } }
+.tile { background: var(--card-bg); padding: 30px; border-radius: 8px; border-top: 4px solid var(--gold); flex: 1; }
+.tile i { font-size: 40px; color: var(--gold); margin-bottom: 15px; }
+
+/* ADMIN BOX */
 .admin-box { background: var(--card-bg); border: 1px solid var(--gold); border-radius: 12px; padding: 25px; margin-top: 40px; display: none; }
 .admin-box input, .admin-box select { width: 100%; padding: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; margin-bottom: 12px; font-size: 14px; }
 .admin-box label { font-size: 12px; color: var(--gold); font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; }
@@ -154,7 +167,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 .onboard-card select { width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; margin: 20px 0 10px 0; font-size: 16px; }
 .onboard-card input[type="password"] { width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; margin-bottom: 20px; font-size: 16px; text-align: center; }
 
-/* MODAL */
+/* AUFSTELLUNGS-MODAL */
 .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 15px; overflow-y: auto; }
 .modal-content { background: var(--navy); border: 1px solid var(--gold); border-radius: 12px; padding: 25px; width: 100%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; max-height: 90vh; overflow-y: auto; }
 .modal h3 { margin-bottom: 15px; font-size: 1.3rem; border-bottom: 1px solid var(--gold-dim); padding-bottom: 10px; }
@@ -164,10 +177,14 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 .modal-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
 .modal-table td:first-child { text-align: left; font-weight: bold; }
 .modal-table select { background: #000; color: #fff; border: 1px solid #333; padding: 6px 8px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; min-width: 75px; }
+.modal-table select:focus { border-color: var(--gold); outline: none; }
 .modal-actions { display: flex; flex-direction: column; gap: 15px; }
 
+/* VISUELLE ANZEIGE */
 .aufstellung-display { background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 6px; padding: 12px; margin-top: 10px; font-size: 12px; }
 .aufstellung-display div { margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 8px; }
+.aufstellung-display div:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+.aufstellung-display strong { color: var(--gold); text-transform: uppercase; font-size: 10px; display: inline-block; width: 75px; }
 .visibility-badge { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: bold; border-radius: 3px; margin-left: 5px; text-transform: uppercase; }
 .badge-locked { background: #ef4444; color: #fff; }
 .badge-public { background: #10b981; color: #000; }
@@ -179,8 +196,31 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     <div class="title-layout">
         <p style="color: var(--gold); letter-spacing: 3px; font-weight: 700; font-size: 14px;">PREMIUM SQUAD MANAGEMENT (SUPABASE)</p>
         <h1>TV Kapellen 1919 e.V. 3<br><span style="color:var(--gold)">Saison 2026/27</span></h1>
-        <p style="max-width: 600px; margin-top: 20px;">Die digitale Supabase-Echtzeit-Zentrale für Kaderplanung und Spieltage.</p>
+        <p style="max-width: 600px; margin-top: 20px;">Die digitale Zentrale für Kaderplanung, Spieltage und Performance-Tracking.</p>
         <p style="font-size: 12px; color: var(--gold); margin-top: 25px; letter-spacing: 1px;">Erstellt von Jürgen Schützendorf</p>
+    </div>
+</div>
+
+<div class="slide-container" id="slide2">
+    <h2 class="slide-title">Mission & Zielsetzung</h2>
+    <div class="content-area">
+        <div class="tiled-content">
+            <div class="tile">
+                <i class="fa-solid fa-bullseye"></i>
+                <h3>Präzision</h3>
+                <p>Dein stärkster Gegner ist nicht der am Board, sondern die Stimme in deinem Kopf. Checke sie aus!</p>
+            </div>
+            <div class="tile">
+                <i class="fa-solid fa-shield-halved"></i>
+                <h3>Klassenerhalt</h3>
+                <p>Klassenerhalt ist kein Zufall, sondern Teamarbeit – jeder Pfeil zählt für unser Ziel!</p>
+            </div>
+            <div class="tile">
+                <i class="fa-solid fa-handshake"></i>
+                <h3>Teamgeist</h3>
+                <p>Ein Team, ein Ziel: Gemeinsam ans Oche, gemeinsam jubeln!</p>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -219,6 +259,18 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 
     <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px;" id="dashboard-top-grid">
         <div id="personal-card-container" style="display:none; margin-bottom: 0;"></div>
+        
+        <div class="match-card" style="margin-bottom: 25px;">
+            <div class="match-title" style="margin-bottom: 15px;">🎯 App-Netzwerk & Quick-Links</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <a href="https://zechenhauer.github.io/saison26-27/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Saison 26/27</a>
+                <a href="https://zechenhauer.github.io/Orga-Saison-26-27/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Orga & Training</a>
+                <a href="https://zechenhauer.github.io/Spielerkarten-Alle-Liga-Spieler/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Digitale Spielerkarte</a>
+                <a href="https://zechenhauer.github.io/Spieler_Vereinsranking/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Vereins Ranking</a>
+                <a href="https://zechenhauer.github.io/TVK-Tabellen/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Tabellen aller Teams</a>
+                <a href="https://zechenhauer.github.io/dart_spielplaner/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Spieltage aller Teams</a>
+            </div>
+        </div>
     </div>
 
     <h2 class="slide-title">Spieltags-Planer</h2>
@@ -249,7 +301,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     <div id="admin-section" class="admin-box">
         <h3 style="color: var(--gold); margin-bottom: 15px;"><i class="fa-solid fa-gear"></i> Admin & Kader-Editor</h3>
         
-        <!-- Bereich 1: Spieltag & Aufstellung -->
         <label>Spieltag auswählen (Für Aufstellung):</label>
         <select id="admin-match-select" onchange="loadAdminMatchData()">
             <option value="">Spieltag wählen...</option>
@@ -266,7 +317,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         </div>
         <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 15px;" onclick="saveMatchDetails()">Spieltag-Aufstellung speichern</button>
 
-        <!-- Bereich 2: Spieler-Statistiken -->
         <div style="margin-top: 35px; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 20px;">
             <h4 style="color: var(--gold); margin-bottom: 12px;"><i class="fa-solid fa-chart-simple"></i> Spieler-Statistiken bearbeiten</h4>
             <label>Spieler auswählen:</label>
@@ -305,6 +355,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             </thead>
             <tbody id="modal-table-body"></tbody>
         </table>
+        
         <div class="modal-actions">
             <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--gold-dim); width: 100%; display: flex; align-items: center; gap: 10px;">
                 <input type="checkbox" id="chk-public-visibility" style="transform: scale(1.4); accent-color: var(--gold); cursor: pointer;">
@@ -325,6 +376,43 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             <p style="text-align:center; padding:20px;">Lade Statistiken...</p>
         </div>
     </div>
+</div>
+
+<div class="slide-container" id="slideDoppel">
+    <h2 class="slide-title">Doppel-Rangliste</h2>
+    <div class="content-area" style="overflow-x: auto;">
+        <table class="liga-table">
+            <thead>
+                <tr>
+                    <th>Spieler 1</th>
+                    <th>Spieler 2</th>
+                    <th style="width: 40px; text-align: center;">Sp</th>
+                    <th style="width: 30px; text-align: center; color: var(--zusage);">S</th>
+                    <th style="width: 30px; text-align: center; color: var(--absage);">N</th>
+                </tr>
+            </thead>
+            <tbody id="doppel-table-body">
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px;">Lade Doppel-Rangliste...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="slide-container" id="slide5" style="justify-content: center; text-align: center;">
+    <div class="content-area" style="display: flex; align-items: center; justify-content: center;">
+        <div style="max-width: 800px;">
+            <i class="fa-solid fa-quote-left" style="font-size: 40px; color: var(--gold); margin-bottom: 20px;"></i>
+            <h2 style="font-size: clamp(24px, 6vw, 48px); line-height: 1.2; font-weight: 400; font-style: italic;">"Erfolg ist kein Zufall. Es ist Vorbereitung, harte Arbeit und das Wissen, dass das Team hinter einem steht."</h2>
+            <p style="margin-top: 20px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; font-size: 12px;">TV Kapellen 1919 e.V. 3 | 2026/27</p>
+        </div>
+    </div>
+</div>
+
+<div style="text-align: center; padding: 30px 20px; color: var(--text-dim); font-size: 13px; font-style: italic; letter-spacing: 1px;">
+    <i class="fa-solid fa-gavel" style="color: var(--gold); margin-bottom: 8px; display: block; font-size: 16px;"></i>
+    "Wer dreimal die 26 wirft, zahlt die nächste Runde im Henri!" – Der TC hat gesprochen.
 </div>
 
 <script>
@@ -402,6 +490,21 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         return `<span class="player-name" style="color: ${color};">${cleanName}</span>`;
     }
 
+    function formatGermanDate(dateStr) {
+        if (!dateStr) return 'Termin offen';
+        let str = dateStr.toString().trim();
+        if (str.toLowerCase().includes('offen') || str === '') return 'Termin offen';
+        if (str.includes('T') && str.includes('-')) {
+            try {
+                const d = new Date(str);
+                if (!isNaN(d.getTime())) {
+                    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                }
+            } catch (e) {}
+        }
+        return str;
+    }
+
     async function initApp() {
         if(!currentUser) return;
         document.getElementById('onboarding').style.display = 'none';
@@ -425,14 +528,12 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             globalAufstellungen = aufstellungenRes.data || [];
             globalStatistiken = statistikenRes.data || [];
 
-            // Admin Spieltag-Dropdown
             const adminSelect = document.getElementById('admin-match-select');
             adminSelect.innerHTML = '<option value="">Spieltag wählen...</option>';
             globalSpieltage.forEach(m => {
                 adminSelect.innerHTML += `<option value="${m.id}">Spieltag ${m.id} vs. ${m.gegner || 'TBA'}</option>`;
             });
 
-            // Admin Spieler-Statistik-Dropdown
             const statPlayerSelect = document.getElementById('admin-stat-player-select');
             statPlayerSelect.innerHTML = '<option value="">Spieler wählen...</option>';
             kaderSpielerListe.forEach(p => {
@@ -576,13 +677,30 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         initApp();
     }
 
-    async function updateStatus(matchId, status) {
-        await supabaseClient.from('tvk_basis_anmeldungen').upsert({
-            spieltag_id: matchId,
-            spieler: currentUser,
-            status: status
-        }, { onConflict: 'spieltag_id,spieler' });
-        initApp();
+    function renderChat(chatMsgs, container) {
+        container.innerHTML = '';
+        if(!chatMsgs || chatMsgs.length === 0) {
+            container.innerHTML = '<p style="text-align: center; color: var(--text-dim); padding: 20px;">Noch keine Nachrichten vorhanden. Schreib die erste!</p>';
+            return;
+        }
+        chatMsgs.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = 'chat-msg';
+            if (msg.spieler === currentUser) {
+                div.style.alignSelf = 'flex-end';
+                div.style.borderLeft = 'none';
+                div.style.borderRight = '3px solid var(--gold)';
+            } else {
+                div.style.alignSelf = 'flex-start';
+            }
+            const timeFormatted = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
+            div.innerHTML = `
+                <div class="chat-meta"><strong>${formatPlayerName(msg.spieler)}</strong><span>${timeFormatted}</span></div>
+                <div class="chat-text">${msg.text}</div>
+            `;
+            container.appendChild(div);
+        });
+        container.scrollTop = container.scrollHeight;
     }
 
     async function sendChatMessage() {
@@ -591,8 +709,23 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         if(!text) return;
         input.value = '';
 
-        await supabaseClient.from('tvk_basis_chat_nachrichten').insert({ spieler: currentUser, text: text });
+        await supabaseClient.from('tvk_basis_chat_nachrichten').insert({
+            spieler: currentUser,
+            text: text
+        });
         initApp();
+    }
+
+    function formatAufstellungString(einzel1, doppel, einzel2) {
+        let parts = [];
+        if (einzel1 && einzel1.length > 0) parts.push(`1.E: ${einzel1.join(', ')}`);
+        if (doppel && doppel.length > 0) {
+            parts.push(`D: ${doppel.join(' / ')}`);
+        } else if (doppel) {
+            parts.push(`D: -`);
+        }
+        if (einzel2 && einzel2.length > 0) parts.push(`2.E: ${einzel2.join(', ')}`);
+        return parts.join(' | ');
     }
 
     function renderDashboard(matches, container) {
@@ -607,20 +740,55 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             card.className = 'match-card';
             const isYes = m.zusagen.includes(currentUser);
             const isNo = m.absagen.includes(currentUser);
-            const isHeim = m.ort && m.ort.toUpperCase() === 'H';
+            const formattedZusagen = m.zusagen.map(formatPlayerName);
+            const formattedAbsagen = m.absagen.map(formatPlayerName);
+
+            const ortClean = m.ort ? m.ort.toString().trim().toUpperCase() : "";
+            const isHeim = ortClean === 'H' || ortClean === 'HEIM';
+            const badgeClass = isHeim ? 'loc-h' : 'loc-a';
+            const badgeText = isHeim ? 'Heim' : 'Auswärts';
+            const spielortInfo = m.adresse || (isHeim ? "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" : "Adresse wird noch bekannt gegeben");
+
+            const adresseHtml = `
+                <div style="margin-top: 8px; font-size: 11px; color: var(--text-dim); background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 4px; border-left: 2px solid ${isHeim ? 'var(--gold)' : 'var(--accent-blue)'};">
+                    <i class="fa-solid fa-location-dot" style="color: ${isHeim ? 'var(--gold)' : 'var(--accent-blue)'}; margin-right: 5px;"></i> 
+                    <strong>Spielort:</strong><br>${spielortInfo}
+                </div>`;
 
             const aufstMF1 = globalAufstellungen.find(a => a.spieltag_id == m.id && a.rolle === "MF1");
             const aufstMF2 = globalAufstellungen.find(a => a.spieltag_id == m.id && a.rolle === "MF2");
 
             let aufstellungHtml = "";
+            function istFuerAlleFreigegeben(aufst) {
+                return aufst && (aufst.freigegeben === true || aufst.freigegeben === "true");
+            }
+
             if (hatMFRolle) {
-                aufstellungHtml = `<div class="aufstellung-display">
-                    <div><strong>Planung MF1:</strong> ${aufstMF1 ? aufstMF1.zusammenfassung : 'Noch keine Liste'} ${aufstMF1?.freigegeben ? '<span class="visibility-badge badge-public">Freigegeben</span>' : '<span class="visibility-badge badge-locked">Intern</span>'}</div>
-                    <div><strong>Planung MF2:</strong> ${aufstMF2 ? aufstMF2.zusammenfassung : 'Noch keine Liste'} ${aufstMF2?.freigegeben ? '<span class="visibility-badge badge-public">Freigegeben</span>' : '<span class="visibility-badge badge-locked">Intern</span>'}</div>
-                </div>`;
+                if (aufstMF1 || aufstMF2) {
+                    aufstellungHtml = `<div class="aufstellung-display">`;
+                    if (aufstMF1) {
+                        const badge = istFuerAlleFreigegeben(aufstMF1) ? `<span class="visibility-badge badge-public">Freigegeben</span>` : `<span class="visibility-badge badge-locked">Intern</span>`;
+                        aufstellungHtml += `<div><strong>Planung MF1:</strong> ${aufstMF1.zusammenfassung || 'Liste aktiv'} ${badge}</div>`;
+                    } else {
+                        aufstellungHtml += `<div><strong>Planung MF1:</strong> <i>Noch keine Liste erstellt</i></div>`;
+                    }
+                    if (aufstMF2) {
+                        const badge = istFuerAlleFreigegeben(aufstMF2) ? `<span class="visibility-badge badge-public">Freigegeben</span>` : `<span class="visibility-badge badge-locked">Intern</span>`;
+                        aufstellungHtml += `<div><strong>Planung MF2:</strong> ${aufstMF2.zusammenfassung || 'Liste aktiv'} ${badge}</div>`;
+                    } else {
+                        aufstellungHtml += `<div><strong>Planung MF2:</strong> <i>Noch keine Liste erstellt</i></div>`;
+                    }
+                    aufstellungHtml += `</div>`;
+                }
             } else {
-                if (aufstMF1?.freigegeben) aufstellungHtml += `<div class="aufstellung-display"><div><strong>Aufstellung (MF1):</strong> ${aufstMF1.zusammenfassung}</div></div>`;
-                if (aufstMF2?.freigegeben) aufstellungHtml += `<div class="aufstellung-display"><div><strong>Aufstellung (MF2):</strong> ${aufstMF2.zusammenfassung}</div></div>`;
+                let zeigeMF1 = istFuerAlleFreigegeben(aufstMF1);
+                let zeigeMF2 = istFuerAlleFreigegeben(aufstMF2);
+                if (zeigeMF1 || zeigeMF2) {
+                    aufstellungHtml = `<div class="aufstellung-display">`;
+                    if (zeigeMF1) aufstellungHtml += `<div><strong>Aufstellung (MF1):</strong> ${aufstMF1.zusammenfassung}</div>`;
+                    if (zeigeMF2) aufstellungHtml += `<div><strong>Aufstellung (MF2):</strong> ${aufstMF2.zusammenfassung}</div>`;
+                    aufstellungHtml += `</div>`;
+                }
             }
 
             let actionContent = `
@@ -633,14 +801,19 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                 actionContent += `<div class="action-row"><button class="app-btn mf-btn" onclick="openAufstellungModal(${m.id}, '${aktuelleRolle}')"><i class="fa-solid fa-clipboard-list"></i> Eigene Liste bearbeiten</button></div>`;
             }
 
+            if (m.ergebnis && m.ergebnis !== "") {
+                actionContent = `<div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; font-family: 'Poppins'; color: var(--white);">ENDERGEBNIS: <span style="color: var(--gold);">${m.ergebnis}</span></div>`;
+            }
+
             card.innerHTML = `
-                <span class="game-loc-badge ${isHeim ? 'loc-h' : 'loc-a'}">${isHeim ? 'Heim' : 'Auswärts'}</span>
+                <span class="game-loc-badge ${badgeClass}">${badgeText}</span>
                 <h4>Spieltag ${m.id}</h4>
-                <div class="match-title">vs. ${m.gegner}</div>
-                <div class="match-date"><i class="fa-regular fa-clock"></i> ${m.datum} - ${m.uhrzeit} Uhr</div>
-                <div class="match-status">
-                    <span class="status-yes"><strong>Dabei (${m.zusagen.length}):</strong> ${m.zusagen.join(', ') || '-'}</span>
-                    <span class="status-no"><strong>Absagen (${m.absagen.length}):</strong> ${m.absagen.join(', ') || '-'}</span>
+                <div class="match-title">vs. ${m.gegner || 'TBA'}</div>
+                <div class="match-date"><i class="fa-regular fa-clock"></i> ${formatGermanDate(m.datum)} - ${m.uhrzeit} Uhr</div>
+                ${adresseHtml}
+                <div class="match-status" style="margin-top: 15px;">
+                    <span class="status-yes"><strong>Dabei (${m.zusagen.length}):</strong> ${m.zusagen.length > 0 ? formattedZusagen.join(', ') : '<i>Keine Zusagen</i>'}</span>
+                    <span class="status-no"><strong>Absagen (${m.absagen.length}):</strong> ${m.absagen.length > 0 ? formattedAbsagen.join(', ') : '<i>Keine Absagen</i>'}</span>
                 </div>
                 ${aufstellungHtml}
                 <div style="margin-top:12px;">${actionContent}</div>
@@ -649,48 +822,50 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         });
     }
 
-    function renderChat(chatMsgs, container) {
-        container.innerHTML = '';
-        if(!chatMsgs.length) {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-dim); padding: 20px;">Noch keine Nachrichten.</p>';
-            return;
-        }
-        chatMsgs.forEach(msg => {
-            const div = document.createElement('div');
-            div.className = 'chat-msg';
-            div.innerHTML = `<div class="chat-meta"><strong>${formatPlayerName(msg.spieler)}</strong><span>${new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div><div class="chat-text">${msg.text}</div>`;
-            container.appendChild(div);
-        });
-        container.scrollTop = container.scrollHeight;
+    function openAufstellungModal(matchId, rolle) {
+        activeMatchId = matchId;
+        document.getElementById('modal-title').innerText = `Aufstellung Spieltag ${matchId} (${rolle})`;
+        document.getElementById('aufstellung-modal').style.display = 'flex';
     }
 
     function renderKaderAndPersonalCard(stats, container) {
         container.innerHTML = '';
         const personalContainer = document.getElementById('personal-card-container');
+        personalContainer.innerHTML = '';
         personalContainer.style.display = 'none';
         const cleanUser = currentUser.replace(' (TC 1)', '').replace(' (MF1)', '').replace(' (MF2)', '').trim();
 
-        stats.forEach((p, index) => {
+        const sortedStats = [...stats].sort((a, b) => b.quote - a.quote);
+
+        sortedStats.forEach((p, index) => {
             const row = document.createElement('div');
             row.className = 'kader-row';
+            const hl = p.highlights ? `<div style="margin-top:12px; padding:10px 15px; background:rgba(12,22,38,0.6); border:1px solid var(--gold); border-radius:6px; font-size:12px;"><i class="fa-solid fa-star" style="color:var(--gold);"></i> <strong>Highlights:</strong> ${p.highlights}</div>` : '';
             row.innerHTML = `
-                <div style="width:100%; display:flex; align-items:center; justify-content:space-between;">
-                    <div class="kader-left"><div class="kader-rank">#${index+1}</div><div>${formatPlayerName(p.spieler)}</div></div>
-                    <div class="kader-details">
-                        <div class="kader-stat-entry"><span class="val" style="color:var(--gold);">${p.quote.toFixed(2)}%</span><span class="lbl">Quote</span></div>
-                        <div class="kader-stat-entry"><span class="val">${p.avg.toFixed(2)}</span><span class="lbl">AVG</span></div>
-                        <div class="kader-stat-entry"><span class="val">${p.spiele}</span><span class="lbl">Spiele</span></div>
-                        <div class="kader-stat-entry"><span class="val" style="color:var(--zusage);">${p.gewonnen}</span><span class="lbl">G</span></div>
-                        <div class="kader-stat-entry"><span class="val" style="color:var(--absage);">${p.verloren}</span><span class="lbl">V</span></div>
-                    </div>
-                </div>`;
+                <div style="width:100%;">
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <div class="kader-left"><div class="kader-rank">#${index+1}</div><div class="name-p"></div></div>
+                        <div class="kader-details">
+                            <div class="kader-stat-entry"><span class="val" style="color:var(--gold);">${p.quote.toFixed(2)}%</span><span class="lbl">Quote</span></div>
+                            <div class="kader-stat-entry"><span class="val">${p.avg.toFixed(2)}</span><span class="lbl">AVG</span></div>
+                            <div class="kader-stat-entry"><span class="val">${p.spiele}</span><span class="lbl">Spiele</span></div>
+                            <div class="kader-stat-entry"><span class="val" style="color:var(--zusage);">${p.gewonnen}</span><span class="lbl">G</span></div>
+                            <div class="kader-stat-entry"><span class="val" style="color:var(--absage);">${p.verloren}</span><span class="lbl">V</span></div>
+                        </div>
+                    </div>${hl}
+                </div>
+            `;
+            row.querySelector('.name-p').innerHTML = formatPlayerName(p.spieler);
             container.appendChild(row);
 
             if (p.spieler.toLowerCase() === cleanUser.toLowerCase()) {
                 personalContainer.style.display = 'block';
+                const topGrid = document.getElementById('dashboard-top-grid');
+                if(window.innerWidth > 768) { topGrid.style.gridTemplateColumns = '1fr 1fr'; }
+
                 personalContainer.innerHTML = `
-                    <div class="personal-card">
-                        <div><p style="color:var(--gold); font-size:11px; font-weight:bold;">DEINE LIVE PERFORMANCE</p><h3 style="font-size:24px;">Hallo, ${p.spieler}!</h3></div>
+                    <div class="personal-card" style="margin-bottom: 0;">
+                        <div><p style="color:var(--gold); font-size:11px; font-weight:bold; letter-spacing:2px;">DEINE LIVE PERFORMANCE</p><h3 style="font-size:24px;">Hallo, ${p.spieler}!</h3><p style="font-size:13px; margin-top:5px;"><i class="fa-solid fa-star" style="color:var(--gold);"></i> Highlights: ${p.highlights||'Keine'}</p></div>
                         <div class="personal-stats-grid">
                             <div class="stat-box"><div class="stat-val" style="color:var(--gold);">${p.quote.toFixed(2)}%</div><div class="stat-lbl">Match-Score</div></div>
                             <div class="stat-box"><div class="stat-val">${p.avg.toFixed(2)}</div><div class="stat-lbl">Saison AVG</div></div>
@@ -698,9 +873,19 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                             <div class="stat-box"><div class="stat-val" style="color:var(--zusage);">${p.gewonnen}</div><div class="stat-lbl">Siege</div></div>
                             <div class="stat-box"><div class="stat-val" style="color:var(--absage);">${p.verloren}</div><div class="stat-lbl">Niederl.</div></div>
                         </div>
-                    </div>`;
+                    </div>
+                `;
             }
         });
+    }
+
+    async function updateStatus(matchId, status) {
+        await supabaseClient.from('tvk_basis_anmeldungen').upsert({
+            spieltag_id: matchId,
+            spieler: currentUser,
+            status: status
+        }, { onConflict: 'spieltag_id,spieler' });
+        initApp();
     }
 
     if(currentUser) initApp();
