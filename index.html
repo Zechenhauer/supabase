@@ -518,13 +518,13 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         }
 
         try {
-            const [spieltageRes, anmeldungenRes, aufstellungenRes, statistikenRes, chatRes, doppelRes] = await Promise.all([
+            const [spieltageRes, anmeldungenRes, aufstellungenRes, statistikenRes, chatRes, spielDetailsRes] = await Promise.all([
                 supabaseClient.from('tvk_basis_spieltage').select('*').order('id', { ascending: true }),
                 supabaseClient.from('tvk_basis_anmeldungen').select('*'),
                 supabaseClient.from('tvk_basis_aufstellungen').select('*'),
                 supabaseClient.from('tvk_basis_kader_statistiken').select('*').order('quote', { ascending: false }),
                 supabaseClient.from('tvk_basis_chat_nachrichten').select('*').order('created_at', { ascending: true }),
-                supabaseClient.from('tvk_basis_doppel_rangliste').select('*').order('spiele', { ascending: false }).catch(() => ({ data: [] }))
+                supabaseClient.from('tvk_basis_spiel_details').select('*')
             ]);
 
             globalSpieltage = spieltageRes.data || [];
@@ -552,9 +552,30 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                 };
             });
 
+            // Automatische Doppel-Tabelle aus den eingetragenen Spiel-Details berechnen
+            const doppelStatMap = {};
+            const detailsData = spielDetailsRes.data || [];
+            detailsData.forEach(d => {
+                if (d.kategorie === 'Doppel' && d.spieler_1 && d.spieler_2) {
+                    // Sortiere die Namen alphabetisch, damit Paar 1 + 2 dasselbe ist wie 2 + 1
+                    const pList = [d.spieler_1, d.spieler_2].sort();
+                    const key = pList[0] + "___" + pList[1];
+                    if (!doppelStatMap[key]) {
+                        doppelStatMap[key] { spieler1: pList[0], spieler2: pList[1], spiele: 0, siege: 0, niederlagen: 0 };
+                    }
+                    doppelStatMap[key].spiele++;
+                    if (d.gewonnen) {
+                        doppelStatMap[key].siege++;
+                    } else {
+                        doppelStatMap[key].niederlagen++;
+                    }
+                }
+            });
+            const doppelRangliste = Object.values(doppelStatMap).sort((a,b) => b.siege - a.siege);
+
             renderDashboard(matches, document.getElementById('match-grid'));
             renderKaderAndPersonalCard(globalStatistiken, document.getElementById('kader-list-target'));
-            renderDoppelTable(doppelRes.data || [], document.getElementById('doppel-table-body'));
+            renderDoppelTable(doppelRangliste, document.getElementById('doppel-table-body'));
             renderChat(chatRes.data || [], document.getElementById('chat-messages-target'));
 
         } catch (err) {
@@ -677,7 +698,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             await supabaseClient.from('tvk_basis_spiel_details').insert(detailsToSave);
         }
 
-        alert("Spieltag-Aufstellung erfolgreich gespeichert!");
+        alert("Spieltag-Aufstellung & Doppel erfolgreich gespeichert!");
         initApp();
     }
 
