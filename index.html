@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link rel="apple-touch-icon" href="https://drive.google.com/uc?id=1PB4X2QrrMlaRlajQEWDtJxRP2c6VTsI5">
     <link rel="icon" sizes="192x192" href="https://drive.google.com/uc?id=1PB4X2QrrMlaRlajQEWDtJxRP2c6VTsI5">
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
 /* 1. GLOBAL THEME & RESPONSIVE SETUP */
@@ -420,7 +422,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     const SUPABASE_ANON_KEY = 'sb_publishable_yXEueWILvAq-Vm2VfTuYyg_BIQeE1KK';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentUser = localStorage.getItem('tvk3_user_26_27_supabase');
+    var currentUser = localStorage.getItem('tvk3_user_26_27_supabase');
 
     const kaderSpielerListe = [
         "Jürgen Schützendorf", "Markus Ginsel", "Ludger Schledorn", 
@@ -516,12 +518,13 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         }
 
         try {
-            const [spieltageRes, anmeldungenRes, aufstellungenRes, statistikenRes, chatRes] = await Promise.all([
+            const [spieltageRes, anmeldungenRes, aufstellungenRes, statistikenRes, chatRes, doppelRes] = await Promise.all([
                 supabaseClient.from('tvk_basis_spieltage').select('*').order('id', { ascending: true }),
                 supabaseClient.from('tvk_basis_anmeldungen').select('*'),
                 supabaseClient.from('tvk_basis_aufstellungen').select('*'),
                 supabaseClient.from('tvk_basis_kader_statistiken').select('*').order('quote', { ascending: false }),
-                supabaseClient.from('tvk_basis_chat_nachrichten').select('*').order('created_at', { ascending: true })
+                supabaseClient.from('tvk_basis_chat_nachrichten').select('*').order('created_at', { ascending: true }),
+                supabaseClient.from('tvk_basis_doppel_rangliste').select('*').order('spiele', { ascending: false }).catch(() => ({ data: [] }))
             ]);
 
             globalSpieltage = spieltageRes.data || [];
@@ -551,6 +554,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 
             renderDashboard(matches, document.getElementById('match-grid'));
             renderKaderAndPersonalCard(globalStatistiken, document.getElementById('kader-list-target'));
+            renderDoppelTable(doppelRes.data || [], document.getElementById('doppel-table-body'));
             renderChat(chatRes.data || [], document.getElementById('chat-messages-target'));
 
         } catch (err) {
@@ -833,7 +837,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         const personalContainer = document.getElementById('personal-card-container');
         personalContainer.innerHTML = '';
         personalContainer.style.display = 'none';
-        const cleanUser = currentUser.replace(' (TC 1)', '').replace(' (MF1)', '').replace(' (MF2)', '').trim();
+        const cleanUser = currentUser ? currentUser.replace(' (TC 1)', '').replace(' (MF1)', '').replace(' (MF2)', '').trim() : '';
 
         const sortedStats = [...stats].sort((a, b) => b.quote - a.quote);
 
@@ -876,6 +880,19 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                     </div>
                 `;
             }
+        });
+    }
+
+    function renderDoppelTable(doppelData, container) {
+        container.innerHTML = '';
+        if(!doppelData || doppelData.length === 0) {
+            container.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">Noch keine Doppel eingetragen.</td></tr>';
+            return;
+        }
+        doppelData.forEach(row => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${formatPlayerName(row.spieler1)}</td><td>${formatPlayerName(row.spieler2)}</td><td style="text-align:center;">${row.spiele}</td><td style="text-align:center; font-weight:bold; color:var(--zusage);">${row.siege}</td><td style="text-align:center; font-weight:bold; color:var(--absage);">${row.niederlagen}</td>`;
+            container.appendChild(tr);
         });
     }
 
