@@ -85,21 +85,22 @@ h1 { font-size: clamp(32px, 7vw, 64px); line-height: 1.1; margin-bottom: 15px; }
 }
 p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 
-/* TEAMBILD-LEISTE IN DER STARTKACHEL */
+/* TEAMBILD-BANNER 7 OBEN / 7 UNTEN */
 .team-banner-grid {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
   margin-top: 25px;
   padding-top: 20px;
   border-top: 1px solid rgba(212, 175, 55, 0.2);
+  max-width: 620px; /* Erzwungener Umbruch nach genau 7 Elementen */
 }
 
 .team-banner-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  width: 75px;
+  width: 76px;
   text-align: center;
 }
 
@@ -211,7 +212,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         <h1>TV Kapellen 1919 e.V. 3<br><span style="color:var(--gold)">Saison 2026/27</span></h1>
         <p style="max-width: 600px; margin-top: 10px;">Die digitale Zentrale für Kaderplanung, Spieltage und Performance-Tracking.</p>
         
-        <!-- TEAMBILD-BANNER IN DER STARTKACHEL -->
+        <!-- TEAMBILD-BANNER 7 OBEN / 7 UNTEN -->
         <div class="team-banner-grid" id="team-banner-container"></div>
 
         <p style="font-size: 11px; color: var(--gold); margin-top: 20px; letter-spacing: 1px;">Erstellt von Jürgen Schützendorf</p>
@@ -462,7 +463,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         return avatars[playerName] || "";
     }
 
-    // Teambild-Banner in der Startkachel generieren
+    // Teambild-Banner (7 oben, 7 unten)
     function renderTeamBanner() {
         const bannerContainer = document.getElementById('team-banner-container');
         if (!bannerContainer) return;
