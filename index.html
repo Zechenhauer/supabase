@@ -74,7 +74,7 @@ body {
 .slide-container > * { position: relative; z-index: 1; }
 
 h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--white); }
-h1 { font-size: clamp(36px, 8vw, 72px); line-height: 1.1; margin-bottom: 15px; }
+h1 { font-size: clamp(32px, 7vw, 64px); line-height: 1.1; margin-bottom: 15px; }
 .slide-title { 
   font-size: clamp(22px, 5vw, 32px); 
   margin-bottom: 25px; 
@@ -84,6 +84,41 @@ h1 { font-size: clamp(36px, 8vw, 72px); line-height: 1.1; margin-bottom: 15px; }
   letter-spacing: 1px; 
 }
 p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
+
+/* TEAMBILD-LEISTE IN DER STARTKACHEL */
+.team-banner-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.team-banner-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 75px;
+  text-align: center;
+}
+
+.team-banner-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  object-fit: cover;
+  background-color: #000;
+  margin-bottom: 4px;
+}
+
+.team-banner-name {
+  font-size: 10px;
+  color: var(--text-main);
+  line-height: 1.2;
+  word-break: break-word;
+}
 
 /* GRID SYSTEMS */
 .app-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
@@ -103,7 +138,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 .status-yes { color: var(--zusage); margin-bottom: 8px; display: block; }
 .status-no { color: var(--absage); display: block; }
 
-.player-name { font-weight: bold; display: inline-block; }
+.player-name { font-weight: bold; display: inline-block; font-size: 14px; }
 .action-row { display: flex; gap: 10px; margin-bottom: 10px; }
 .app-btn { flex: 1; padding: 12px; border: 1px solid #333; border-radius: 6px; background: transparent; color: white; cursor: pointer; font-size: 12px; font-weight: 700; text-transform: uppercase; }
 .app-btn.active-yes { background: var(--zusage); border-color: var(--zusage); color: #000; }
@@ -127,22 +162,22 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 .personal-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; }
 @media (min-width: 768px) { .personal-stats-grid { grid-template-columns: repeat(5, 1fr); width: auto; gap: 20px; } }
 .stat-box { background: rgba(255,255,255,0.02); padding: 10px 15px; border-radius: 6px; border-left: 3px solid var(--gold); }
-.stat-box .stat-val { font-size: 22px; font-weight: bold; color: var(--white); font-family: 'Poppins'; }
-.stat-box .stat-lbl { font-size: 11px; color: var(--text-dim); text-transform: uppercase; }
+.stat-box .stat-val { font-size: 20px; font-weight: bold; color: var(--white); font-family: 'Poppins'; }
+.stat-box .stat-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; }
 
 /* KADER LISTE */
 .kader-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-.kader-row { display: flex; flex-direction: column; background: var(--card-bg); padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); gap: 10px; }
+.kader-row { display: flex; flex-direction: column; background: var(--card-bg); padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); gap: 10px; }
 @media (min-width: 768px) { 
-  .kader-row { flex-direction: row; align-items: center; justify-content: space-between; padding: 12px 20px; } 
+  .kader-row { flex-direction: row; align-items: center; justify-content: space-between; padding: 10px 20px; } 
 }
-.kader-left { display: flex; align-items: center; gap: 15px; }
-.kader-rank { font-family: 'Poppins'; font-weight: bold; color: var(--gold); font-size: 18px; width: 25px; }
-.kader-details { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; }
-@media (min-width: 768px) { .kader-details { background: none; padding: 0; gap: 25px; display: flex; } }
+.kader-left { display: flex; align-items: center; gap: 12px; }
+.kader-rank { font-family: 'Poppins'; font-weight: bold; color: var(--gold); font-size: 16px; width: 22px; }
+.kader-details { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; }
+@media (min-width: 768px) { .kader-details { background: none; padding: 0; gap: 20px; display: flex; } }
 .kader-stat-entry { display: flex; flex-direction: column; }
 @media (min-width: 768px) { .kader-stat-entry { align-items: center; } }
-.kader-stat-entry .val { font-size: 16px; font-weight: bold; color: var(--white); }
+.kader-stat-entry .val { font-size: 14px; font-weight: bold; color: var(--white); }
 .kader-stat-entry .lbl { font-size: 9px; color: var(--text-dim); text-transform: uppercase; }
 
 /* MISSION TILES */
@@ -174,8 +209,12 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     <div class="title-layout">
         <p style="color: var(--gold); letter-spacing: 3px; font-weight: 700; font-size: 14px;">PREMIUM SQUAD MANAGEMENT (SUPABASE)</p>
         <h1>TV Kapellen 1919 e.V. 3<br><span style="color:var(--gold)">Saison 2026/27</span></h1>
-        <p style="max-width: 600px; margin-top: 20px;">Die digitale Zentrale für Kaderplanung, Spieltage und Performance-Tracking.</p>
-        <p style="font-size: 12px; color: var(--gold); margin-top: 25px; letter-spacing: 1px;">Erstellt von Jürgen Schützendorf</p>
+        <p style="max-width: 600px; margin-top: 10px;">Die digitale Zentrale für Kaderplanung, Spieltage und Performance-Tracking.</p>
+        
+        <!-- TEAMBILD-BANNER IN DER STARTKACHEL -->
+        <div class="team-banner-grid" id="team-banner-container"></div>
+
+        <p style="font-size: 11px; color: var(--gold); margin-top: 20px; letter-spacing: 1px;">Erstellt von Jürgen Schützendorf</p>
     </div>
 </div>
 
@@ -402,6 +441,47 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         "Leon Gerber": "#cdaf95", "Gregor Marek": "#cdcdc1"
     };
 
+    // SPIELER AVATAR URLS AUS SUPABASE STORAGE
+    function getPlayerAvatarUrl(playerName) {
+        const avatars = {
+            "Andreas Denner": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Andreas%20Denner.png",
+            "Florian Hartwich": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Florian%20Hartwich.png",
+            "Gregor Marek": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/gregor%20marek.png",
+            "Jürgen Schützendorf": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Juergen%20Schuetzendorf.png",
+            "Lars Neutag": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/lars%20Neutag.png",
+            "Leon Gerber": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/leon%20gerber.png",
+            "Ludger Schledorn": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Ludger%20Schledorn.png",
+            "Markus Ginsel": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Markus%20Ginsel.png",
+            "Markus Lenz": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Markus%20Lenz.png",
+            "Michael Müller": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Michael%20Mueller.png",
+            "Niklas Weichert": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Niklas%20Weichert.png",
+            "Thomas Kliver": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Thomas%20Kliver.png",
+            "Wolfram Senger": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Wolfram%20Senger.png",
+            "Yannick Steffes": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Yannick%20Steffes.png"
+        };
+        return avatars[playerName] || "";
+    }
+
+    // Teambild-Banner in der Startkachel generieren
+    function renderTeamBanner() {
+        const bannerContainer = document.getElementById('team-banner-container');
+        if (!bannerContainer) return;
+        bannerContainer.innerHTML = '';
+
+        kaderSpielerListe.forEach(player => {
+            const avatarUrl = getPlayerAvatarUrl(player);
+            const imgHtml = avatarUrl ? `<img src="${avatarUrl}" class="team-banner-avatar" alt="${player}">` : `<div class="team-banner-avatar" style="display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; color:var(--gold);">${player.charAt(0)}</div>`;
+            
+            const item = document.createElement('div');
+            item.className = 'team-banner-item';
+            item.innerHTML = `
+                ${imgHtml}
+                <span class="team-banner-name">${player.split(' ')[0]}</span>
+            `;
+            bannerContainer.appendChild(item);
+        });
+    }
+
     function togglePasswordInput() {
         const sel = document.getElementById('player-select').value;
         const passContainer = document.getElementById('password-container');
@@ -477,6 +557,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     }
 
     async function initApp() {
+        renderTeamBanner();
         if(!currentUser) return;
         document.getElementById('onboarding').style.display = 'none';
         document.getElementById('active-user').innerHTML = formatPlayerName(currentUser);
@@ -815,7 +896,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         personalContainer.style.display = 'none';
         const cleanUser = currentUser ? currentUser.replace(' (TC 1)', '').replace(' (MF1)', '').replace(' (MF2)', '').trim() : '';
 
-        // Sortierung: 1. Nach Quote absteigend, 2. Bei Gleichstand nach AVG absteigend
         const sortedStats = [...stats].sort((a, b) => {
             if (b.quote !== a.quote) {
                 return b.quote - a.quote;
@@ -826,11 +906,14 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         sortedStats.forEach((p, index) => {
             const row = document.createElement('div');
             row.className = 'kader-row';
-            const hl = p.highlights ? `<div style="margin-top:12px; padding:10px 15px; background:rgba(12,22,38,0.6); border:1px solid var(--gold); border-radius:6px; font-size:12px;"><i class="fa-solid fa-star" style="color:var(--gold);"></i> <strong>Highlights:</strong> ${p.highlights}</div>` : '';
+            const hl = p.highlights ? `<div style="margin-top:10px; padding:8px 12px; background:rgba(12,22,38,0.6); border:1px solid var(--gold); border-radius:6px; font-size:11px;"><i class="fa-solid fa-star" style="color:var(--gold);"></i> <strong>Highlights:</strong> ${p.highlights}</div>` : '';
             row.innerHTML = `
                 <div style="width:100%;">
                     <div style="display:flex; align-items:center; justify-content:space-between;">
-                        <div class="kader-left"><div class="kader-rank">#${index+1}</div><div class="name-p"></div></div>
+                        <div class="kader-left">
+                            <div class="kader-rank">#${index+1}</div>
+                            <div class="name-p"></div>
+                        </div>
                         <div class="kader-details">
                             <div class="kader-stat-entry"><span class="val" style="color:var(--gold);">${(p.quote || 0).toFixed(2)}%</span><span class="lbl">Quote</span></div>
                             <div class="kader-stat-entry"><span class="val">${(p.avg || 0).toFixed(2)}</span><span class="lbl">AVG</span></div>
@@ -851,7 +934,11 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 
                 personalContainer.innerHTML = `
                     <div class="personal-card" style="margin-bottom: 0;">
-                        <div><p style="color:var(--gold); font-size:11px; font-weight:bold; letter-spacing:2px;">DEINE LIVE PERFORMANCE</p><h3 style="font-size:24px;">Hallo, ${p.spieler}!</h3><p style="font-size:13px; margin-top:5px;"><i class="fa-solid fa-star" style="color:var(--gold);"></i> Highlights: ${p.highlights||'Keine'}</p></div>
+                        <div>
+                            <p style="color:var(--gold); font-size:11px; font-weight:bold; letter-spacing:2px;">DEINE LIVE PERFORMANCE</p>
+                            <h3 style="font-size:22px;">Hallo, ${p.spieler}!</h3>
+                            <p style="font-size:12px; margin-top:3px;"><i class="fa-solid fa-star" style="color:var(--gold);"></i> Highlights: ${p.highlights||'Keine'}</p>
+                        </div>
                         <div class="personal-stats-grid">
                             <div class="stat-box"><div class="stat-val" style="color:var(--gold);">${(p.quote || 0).toFixed(2)}%</div><div class="stat-lbl">Match-Score</div></div>
                             <div class="stat-box"><div class="stat-val">${(p.avg || 0).toFixed(2)}</div><div class="stat-lbl">Saison AVG</div></div>
