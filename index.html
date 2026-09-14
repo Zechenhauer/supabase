@@ -303,6 +303,30 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     <div id="admin-section" class="admin-box">
         <h3 style="color: var(--gold); margin-bottom: 15px;"><i class="fa-solid fa-gear"></i> Admin & Kader-Editor</h3>
         
+        <!-- NEUEN SPIELTAG ANLEGEN -->
+        <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--gold-dim); margin-bottom: 25px;">
+            <h4 style="color: var(--gold); margin-bottom: 12px;"><i class="fa-solid fa-calendar-plus"></i> Neuen Spieltag anlegen</h4>
+            <div class="double-row">
+                <div><label>Spieltag-Nr. (ID)</label><input type="number" id="new-spieltag-id" placeholder="z.B. 5"></div>
+                <div><label>Gegner</label><input type="text" id="new-spieltag-gegner" placeholder="z.B. TSV Rumeln 4"></div>
+            </div>
+            <div class="double-row">
+                <div><label>Datum</label><input type="date" id="new-spieltag-datum"></div>
+                <div><label>Uhrzeit</label><input type="text" id="new-spieltag-uhrzeit" value="19:00"></div>
+            </div>
+            <div class="double-row">
+                <div>
+                    <label>Ort (H = Heim, A = Auswärts)</label>
+                    <select id="new-spieltag-ort">
+                        <option value="H">Heim (Jugendzentrum Henri)</option>
+                        <option value="A">Auswärts</option>
+                    </select>
+                </div>
+                <div><label>Auswärts-Adresse (optional)</label><input type="text" id="new-spieltag-adresse" placeholder="Nur bei Auswärtsspiel nötig"></div>
+            </div>
+            <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 5px;" onclick="createNewSpieltag()">Spieltag in Datenbank anlegen</button>
+        </div>
+
         <label>Spieltag auswählen (Für Aufstellung):</label>
         <select id="admin-match-select" onchange="loadAdminMatchData()">
             <option value="">Spieltag wählen...</option>
@@ -440,6 +464,14 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     let globalSpieltage = [];
     let globalStatistiken = [];
 
+    const playerColors = {
+        "Jürgen Schützendorf": "#FFD700", "Markus Ginsel": "#FF922B", "Ludger Schledorn": "#FF6B6B",
+        "Niklas Weichert": "#51CF66", "Michael Müller": "#F54927", "Markus Lenz": "#4DABF7",
+        "Andreas Denner": "#ccccff", "Florian Hartwich": "#cdc9c9", "Lars Neutag": "#ff1493",
+        "Thomas Kliver": "#d5c58a", "Wolfram Senger": "#ADD8E6", "Yannick Steffes": "#FFFFFF",
+        "Leon Gerber": "#cdaf95", "Gregor Marek": "#cdcdc1"
+    };
+
     function togglePasswordInput() {
         const sel = document.getElementById('player-select').value;
         const passContainer = document.getElementById('password-container');
@@ -476,14 +508,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     function closeModal() {
         document.getElementById('aufstellung-modal').style.display = 'none';
     }
-
-    const playerColors = {
-        "Jürgen Schützendorf": "#FFD700", "Markus Ginsel": "#FF922B", "Ludger Schledorn": "#FF6B6B",
-        "Niklas Weichert": "#51CF66", "Michael Müller": "#F54927", "Markus Lenz": "#4DABF7",
-        "Andreas Denner": "#ccccff", "Florian Hartwich": "#cdc9c9", "Lars Neutag": "#ff1493",
-        "Thomas Kliver": "#d5c58a", "Wolfram Senger": "#ADD8E6", "Yannick Steffes": "#FFFFFF",
-        "Leon Gerber": "#cdaf95", "Gregor Marek": "#cdcdc1"
-    };
 
     function formatPlayerName(name) {
         if (!name) return "";
@@ -552,16 +576,15 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                 };
             });
 
-            // Automatische Doppel-Tabelle aus den eingetragenen Spiel-Details berechnen
+            // Doppel-Tabelle aus Spiel-Details berechnen
             const doppelStatMap = {};
             const detailsData = spielDetailsRes.data || [];
             detailsData.forEach(d => {
                 if (d.kategorie === 'Doppel' && d.spieler_1 && d.spieler_2) {
-                    // Sortiere die Namen alphabetisch, damit Paar 1 + 2 dasselbe ist wie 2 + 1
                     const pList = [d.spieler_1, d.spieler_2].sort();
                     const key = pList[0] + "___" + pList[1];
                     if (!doppelStatMap[key]) {
-                        doppelStatMap[key] { spieler1: pList[0], spieler2: pList[1], spiele: 0, siege: 0, niederlagen: 0 };
+                        doppelStatMap[key] = { spieler1: pList[0], spieler2: pList[1], spiele: 0, siege: 0, niederlagen: 0 };
                     }
                     doppelStatMap[key].spiele++;
                     if (d.gewonnen) {
@@ -583,16 +606,54 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         }
     }
 
+    async function createNewSpieltag() {
+        const id = parseInt(document.getElementById('new-spieltag-id').value);
+        const gegner = document.getElementById('new-spieltag-gegner').value.trim();
+        const datum = document.getElementById('new-spieltag-datum').value;
+        const uhrzeit = document.getElementById('new-spieltag-uhrzeit').value.trim();
+        const ort = document.getElementById('new-spieltag-ort').value;
+        const adresse = document.getElementById('new-spieltag-adresse').value.trim();
+
+        if (!id || !gegner || !datum) {
+            alert("Bitte mindestens Spieltag-Nr, Gegner und Datum ausfüllen!");
+            return;
+        }
+
+        const payload = {
+            id: id,
+            gegner: gegner,
+            datum: datum,
+            uhrzeit: uhrzeit || "19:00",
+            ort: ort,
+            adresse: adresse || null
+        };
+
+        const { error } = await supabaseClient.from('tvk_basis_spieltage').upsert(payload);
+        if (error) {
+            alert("Fehler beim Speichern: " + error.message);
+        } else {
+            alert(`Spieltag ${id} gegen ${gegner} erfolgreich angelegt!`);
+            document.getElementById('new-spieltag-id').value = '';
+            document.getElementById('new-spieltag-gegner').value = '';
+            document.getElementById('new-spieltag-datum').value = '';
+            document.getElementById('new-spieltag-adresse').value = '';
+            initApp();
+        }
+    }
+
     function buildAdminFormStructure() {
         const singlesContainer = document.getElementById('admin-singles-container');
         singlesContainer.innerHTML = '';
-        let playerOpts = '<option value="">-- Spieler wählen --</option>' + kaderSpielerListe.map(p => `<option value="${p}">${p}</option>`).join('');
+        let playerOpts = '<option value="">-- Spieler wählen --</option>' + kaderSpielerListe.map(p => {
+            const color = playerColors[p] || "#fff";
+            return `<option value="${p}" style="color:${color};">${p}</option>`;
+        }).join('');
 
         for (let i = 1; i <= 8; i++) {
             singlesContainer.innerHTML += `
                 <div style="margin-bottom: 6px;">
                     <label style="font-size:11px;">Einzel ${i}:</label>
-                    <select id="admin-single-${i}">${playerOpts}</select>
+                    <select id="admin-single-${i}" style="color:var(--white);">${playerOpts}</select>
                 </div>`;
         }
 
@@ -603,8 +664,8 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                 <div style="margin-bottom: 10px;">
                     <label style="font-size:11px;">Doppel ${i} (2 Spieler):</label>
                     <div class="double-row">
-                        <select id="admin-double-${i}-p1">${playerOpts}</select>
-                        <select id="admin-double-${i}-p2">${playerOpts}</select>
+                        <select id="admin-double-${i}-p1" style="color:var(--white);">${playerOpts}</select>
+                        <select id="admin-double-${i}-p2" style="color:var(--white);">${playerOpts}</select>
                     </div>
                 </div>`;
         }
@@ -739,18 +800,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             text: text
         });
         initApp();
-    }
-
-    function formatAufstellungString(einzel1, doppel, einzel2) {
-        let parts = [];
-        if (einzel1 && einzel1.length > 0) parts.push(`1.E: ${einzel1.join(', ')}`);
-        if (doppel && doppel.length > 0) {
-            parts.push(`D: ${doppel.join(' / ')}`);
-        } else if (doppel) {
-            parts.push(`D: -`);
-        }
-        if (einzel2 && einzel2.length > 0) parts.push(`2.E: ${einzel2.join(', ')}`);
-        return parts.join(' | ');
     }
 
     function renderDashboard(matches, container) {
