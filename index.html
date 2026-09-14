@@ -169,27 +169,10 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 .onboard-card select { width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; margin: 20px 0 10px 0; font-size: 16px; }
 .onboard-card input[type="password"] { width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; margin-bottom: 20px; font-size: 16px; text-align: center; }
 
-/* AUFSTELLUNGS-MODAL */
-.modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; padding: 15px; overflow-y: auto; }
-.modal-content { background: var(--navy); border: 1px solid var(--gold); border-radius: 12px; padding: 25px; width: 100%; max-width: 650px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; max-height: 90vh; overflow-y: auto; }
-.modal h3 { margin-bottom: 15px; font-size: 1.3rem; border-bottom: 1px solid var(--gold-dim); padding-bottom: 10px; }
-.modal-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; }
-.modal-table th { color: var(--gold); padding: 10px; text-align: center; border-bottom: 1px solid var(--gold-dim); font-size: 11px; text-transform: uppercase; }
-.modal-table th:first-child { text-align: left; }
-.modal-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); text-align: center; }
-.modal-table td:first-child { text-align: left; font-weight: bold; }
-.modal-table select { background: #000; color: #fff; border: 1px solid #333; padding: 6px 8px; border-radius: 4px; font-size: 13px; font-weight: bold; cursor: pointer; min-width: 75px; }
-.modal-table select:focus { border-color: var(--gold); outline: none; }
-.modal-actions { display: flex; flex-direction: column; gap: 15px; }
-
-/* VISUELLE ANZEIGE */
-.aufstellung-display { background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 6px; padding: 12px; margin-top: 10px; font-size: 12px; }
-.aufstellung-display div { margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 8px; }
-.aufstellung-display div:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
-.aufstellung-display strong { color: var(--gold); text-transform: uppercase; font-size: 10px; display: inline-block; width: 75px; }
-.visibility-badge { display: inline-block; padding: 2px 6px; font-size: 9px; font-weight: bold; border-radius: 3px; margin-left: 5px; text-transform: uppercase; }
-.badge-locked { background: #ef4444; color: #fff; }
-.badge-public { background: #10b981; color: #000; }
+/* VISUELLE AUFSTELLUNG AUF DER KARTE */
+.aufstellung-display { background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 6px; padding: 12px; margin-top: 15px; font-size: 12px; }
+.aufstellung-display div { margin-bottom: 6px; }
+.aufstellung-display strong { color: var(--gold); text-transform: uppercase; font-size: 10px; display: inline-block; width: 65px; }
     </style>
 </head>
 <body>
@@ -367,34 +350,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     </div>
 </div>
 
-<div id="aufstellung-modal" class="modal">
-    <div class="modal-content">
-        <h3 id="modal-title">Aufstellung planen</h3>
-        <table class="modal-table">
-            <thead>
-                <tr>
-                    <th>Spieler</th>
-                    <th>1. Einzel (1-8)</th>
-                    <th>Doppel</th>
-                    <th>2. Einzel (1-8)</th>
-                </tr>
-            </thead>
-            <tbody id="modal-table-body"></tbody>
-        </table>
-        
-        <div class="modal-actions">
-            <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--gold-dim); width: 100%; display: flex; align-items: center; gap: 10px;">
-                <input type="checkbox" id="chk-public-visibility" style="transform: scale(1.4); accent-color: var(--gold); cursor: pointer;">
-                <label for="chk-public-visibility" style="font-size: 13px; font-weight: bold; color: var(--white); cursor: pointer;">Aufstellung für alle sichtbar freigeben</label>
-            </div>
-            <div style="display: flex; gap: 10px; width: 100%;">
-                <button class="app-btn active-yes" id="btn-save-aufstellung" onclick="saveAufstellungData()">Speichern</button>
-                <button class="app-btn active-no" onclick="closeModal()">Abbrechen</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="slide-container" id="slide4">
     <h2 class="slide-title">Kader Übersicht (nach Match-Score)</h2>
     <div class="content-area">
@@ -459,10 +414,9 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         "Markus Ginsel": "4321"
     };
 
-    let activeMatchId = null;
-    let globalAufstellungen = [];
     let globalSpieltage = [];
     let globalStatistiken = [];
+    let globalSpielDetails = [];
 
     const playerColors = {
         "Jürgen Schützendorf": "#FFD700", "Markus Ginsel": "#FF922B", "Ludger Schledorn": "#FF6B6B",
@@ -505,10 +459,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         location.reload();
     }
 
-    function closeModal() {
-        document.getElementById('aufstellung-modal').style.display = 'none';
-    }
-
     function formatPlayerName(name) {
         if (!name) return "";
         const cleanName = name.replace(' (TC 1)', '').replace(' (MF1)', '').replace(' (MF2)', '').trim();
@@ -542,18 +492,17 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         }
 
         try {
-            const [spieltageRes, anmeldungenRes, aufstellungenRes, statistikenRes, chatRes, spielDetailsRes] = await Promise.all([
+            const [spieltageRes, anmeldungenRes, statistikenRes, chatRes, spielDetailsRes] = await Promise.all([
                 supabaseClient.from('tvk_basis_spieltage').select('*').order('id', { ascending: true }),
                 supabaseClient.from('tvk_basis_anmeldungen').select('*'),
-                supabaseClient.from('tvk_basis_aufstellungen').select('*'),
                 supabaseClient.from('tvk_basis_kader_statistiken').select('*').order('quote', { ascending: false }),
                 supabaseClient.from('tvk_basis_chat_nachrichten').select('*').order('created_at', { ascending: true }),
                 supabaseClient.from('tvk_basis_spiel_details').select('*')
             ]);
 
             globalSpieltage = spieltageRes.data || [];
-            globalAufstellungen = aufstellungenRes.data || [];
             globalStatistiken = statistikenRes.data || [];
+            globalSpielDetails = spielDetailsRes.data || [];
 
             const adminSelect = document.getElementById('admin-match-select');
             adminSelect.innerHTML = '<option value="">Spieltag wählen...</option>';
@@ -578,8 +527,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
 
             // Doppel-Tabelle aus Spiel-Details berechnen
             const doppelStatMap = {};
-            const detailsData = spielDetailsRes.data || [];
-            detailsData.forEach(d => {
+            globalSpielDetails.forEach(d => {
                 if (d.kategorie === 'Doppel' && d.spieler_1 && d.spieler_2) {
                     const pList = [d.spieler_1, d.spieler_2].sort();
                     const key = pList[0] + "___" + pList[1];
@@ -681,20 +629,18 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
             document.getElementById(`admin-double-${i}-p2`).value = "";
         }
 
-        const { data } = await supabaseClient.from('tvk_basis_spiel_details').select('*').eq('spieltag_id', matchId);
-        if (data) {
-            data.forEach(row => {
-                if (row.kategorie === 'Einzel') {
-                    const sel = document.getElementById(`admin-single-${row.spiel_nummer}`);
-                    if (sel) sel.value = row.spieler_1 || "";
-                } else if (row.kategorie === 'Doppel') {
-                    const p1Sel = document.getElementById(`admin-double-${row.spiel_nummer}-p1`);
-                    const p2Sel = document.getElementById(`admin-double-${row.spiel_nummer}-p2`);
-                    if (p1Sel) p1Sel.value = row.spieler_1 || "";
-                    if (p2Sel) p2Sel.value = row.spieler_2 || "";
-                }
-            });
-        }
+        const matchDetails = globalSpielDetails.filter(d => d.spieltag_id == matchId);
+        matchDetails.forEach(row => {
+            if (row.kategorie === 'Einzel') {
+                const sel = document.getElementById(`admin-single-${row.spiel_nummer}`);
+                if (sel) sel.value = row.spieler_1 || "";
+            } else if (row.kategorie === 'Doppel') {
+                const p1Sel = document.getElementById(`admin-double-${row.spiel_nummer}-p1`);
+                const p2Sel = document.getElementById(`admin-double-${row.spiel_nummer}-p2`);
+                if (p1Sel) p1Sel.value = row.spieler_1 || "";
+                if (p2Sel) p2Sel.value = row.spieler_2 || "";
+            }
+        });
     }
 
     function loadPlayerStatData() {
@@ -758,12 +704,12 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         if (detailsToSave.length > 0) {
             const { error } = await supabaseClient.from('tvk_basis_spiel_details').insert(detailsToSave);
             if (error) {
-                alert("Fehler beim Speichern der Spiel-Details: " + error.message);
+                alert("Fehler beim Speichern der Aufstellung: " + error.message);
                 return;
             }
         }
 
-        alert("Spieltag-Aufstellung & Doppel erfolgreich gespeichert!");
+        alert("Spieltag-Aufstellung erfolgreich gespeichert!");
         initApp();
     }
 
@@ -806,18 +752,8 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
         initApp();
     }
 
-    function openAufstellungModal(matchId, rolle) {
-        activeMatchId = matchId;
-        document.getElementById('modal-title').innerText = `Aufstellung Spieltag ${matchId} (${rolle})`;
-        document.getElementById('aufstellung-modal').style.display = 'flex';
-    }
-
     function renderDashboard(matches, container) {
         container.innerHTML = '';
-        const isMF1 = currentUser === "Jürgen Schützendorf";
-        const isMF2 = currentUser === "Markus Ginsel";
-        const hatMFRolle = isMF1 || isMF2;
-        const aktuelleRolle = isMF1 ? "MF1" : (isMF2 ? "MF2" : "");
 
         matches.forEach(m => {
             const card = document.createElement('div');
@@ -839,40 +775,23 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                     <strong>Spielort:</strong><br>${spielortInfo}
                 </div>`;
 
-            const aufstMF1 = globalAufstellungen.find(a => a.spieltag_id == m.id && a.rolle === "MF1");
-            const aufstMF2 = globalAufstellungen.find(a => a.spieltag_id == m.id && a.rolle === "MF2");
-
+            // Aufstellung für diesen Spieltag aus globalSpielDetails zusammenbauen
+            const matchDetails = globalSpielDetails.filter(d => d.spieltag_id == m.id);
             let aufstellungHtml = "";
-            function istFuerAlleFreigegeben(aufst) {
-                return aufst && (aufst.freigegeben === true || aufst.freigegeben === "true");
-            }
+            if (matchDetails.length > 0) {
+                const einzelspiele = matchDetails.filter(d => d.kategorie === 'Einzel').sort((a,b) => a.spiel_nummer - b.spiel_nummer);
+                const doppelspiele = matchDetails.filter(d => d.kategorie === 'Doppel').sort((a,b) => a.spiel_nummer - b.spiel_nummer);
 
-            if (hatMFRolle) {
-                if (aufstMF1 || aufstMF2) {
-                    aufstellungHtml = `<div class="aufstellung-display">`;
-                    if (aufstMF1) {
-                        const badge = istFuerAlleFreigegeben(aufstMF1) ? `<span class="visibility-badge badge-public">Freigegeben</span>` : `<span class="visibility-badge badge-locked">Intern</span>`;
-                        aufstellungHtml += `<div><strong>Planung MF1:</strong> ${aufstMF1.zusammenfassung || 'Liste aktiv'} ${badge}</div>`;
-                    } else {
-                        aufstellungHtml += `<div><strong>Planung MF1:</strong> <i>Noch keine Liste erstellt</i></div>`;
-                    }
-                    if (aufstMF2) {
-                        const badge = istFuerAlleFreigegeben(aufstMF2) ? `<span class="visibility-badge badge-public">Freigegeben</span>` : `<span class="visibility-badge badge-locked">Intern</span>`;
-                        aufstellungHtml += `<div><strong>Planung MF2:</strong> ${aufstMF2.zusammenfassung || 'Liste aktiv'} ${badge}</div>`;
-                    } else {
-                        aufstellungHtml += `<div><strong>Planung MF2:</strong> <i>Noch keine Liste erstellt</i></div>`;
-                    }
-                    aufstellungHtml += `</div>`;
-                }
-            } else {
-                let zeigeMF1 = istFuerAlleFreigegeben(aufstMF1);
-                let zeigeMF2 = istFuerAlleFreigegeben(aufstMF2);
-                if (zeigeMF1 || zeigeMF2) {
-                    aufstellungHtml = `<div class="aufstellung-display">`;
-                    if (zeigeMF1) aufstellungHtml += `<div><strong>Aufstellung (MF1):</strong> ${aufstMF1.zusammenfassung}</div>`;
-                    if (zeigeMF2) aufstellungHtml += `<div><strong>Aufstellung (MF2):</strong> ${aufstMF2.zusammenfassung}</div>`;
-                    aufstellungHtml += `</div>`;
-                }
+                let einzelStr = einzelspiele.map(e => `E${e.spiel_nummer}: ${formatPlayerName(e.spieler_1)}`).join(' | ');
+                let doppelStr = doppelspiele.map(d => `D${d.spiel_nummer}: ${formatPlayerName(d.spieler_1)} / ${formatPlayerName(d.spieler_2)}`).join(' | ');
+
+                aufstellungHtml = `
+                    <div class="aufstellung-display">
+                        <div style="font-weight:bold; color:var(--gold); margin-bottom:6px; border-bottom:1px solid rgba(212,175,55,0.2); padding-bottom:4px;">🎯 Offizielle Aufstellung</div>
+                        ${einzelStr ? `<div><strong>Einzel:</strong> ${einzelStr}</div>` : ''}
+                        ${doppelStr ? `<div><strong>Doppel:</strong> ${doppelStr}</div>` : ''}
+                    </div>
+                `;
             }
 
             let actionContent = `
@@ -881,9 +800,6 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                     <button class="app-btn ${isNo ? 'active-no' : ''}" onclick="updateStatus(${m.id}, 'no')">Absage</button>
                 </div>
             `;
-            if (hatMFRolle) {
-                actionContent += `<div class="action-row"><button class="app-btn mf-btn" onclick="openAufstellungModal(${m.id}, '${aktuelleRolle}')"><i class="fa-solid fa-clipboard-list"></i> Eigene Liste bearbeiten</button></div>`;
-            }
 
             if (m.ergebnis && m.ergebnis !== "") {
                 actionContent = `<div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; font-family: 'Poppins'; color: var(--white);">ENDERGEBNIS: <span style="color: var(--gold);">${m.ergebnis}</span></div>`;
@@ -900,7 +816,7 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
                     <span class="status-no"><strong>Absagen (${m.absagen.length}):</strong> ${m.absagen.length > 0 ? formattedAbsagen.join(', ') : '<i>Keine Absagen</i>'}</span>
                 </div>
                 ${aufstellungHtml}
-                <div style="margin-top:12px;">${actionContent}</div>
+                <div style="margin-top:15px;">${actionContent}</div>
             `;
             container.appendChild(card);
         });
