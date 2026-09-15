@@ -3,413 +3,502 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Kapellen 1919 e.V. - Spieltags-Planer (Supabase Live)</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="apple-touch-icon" href="https://drive.google.com/uc?id=1PB4X2QrrMlaRlajQEWDtJxRP2c6VTsI5">
-    <link rel="icon" sizes="192x192" href="https://drive.google.com/uc?id=1PB4X2QrrMlaRlajQEWDtJxRP2c6VTsI5">
-    <!-- Supabase JS Client -->
+    <title>TV Kapellen Darts - Live-Spielplaner</title>
+    <!-- Supabase Client Bibliothek laden -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
     <style>
-/* 1. GLOBAL THEME & RESPONSIVE SETUP */
-:root {
-  --navy: #050a14;
-  --gold: #D4AF37;
-  --gold-dim: rgba(212, 175, 55, 0.1);
-  --white: #ffffff;
-  --card-bg: #0c1626;
-  --accent-blue: #0074D9;
-  --text-main: #e2e8f0;
-  --text-dim: #94a3b8;
-  --zusage: #10b981;
-  --absage: #ef4444;
-}
+        :root {
+            --bg-color: #0d1117;
+            --card-bg: #161b22;
+            --border-color: #30363d;
+            --text-color: #c9d1d9;
+            --text-muted: #8b949e;
+            --primary-gold: #d4af37;
+            --accent-blue: #58a6ff;
+            
+            --team1-color: #e3b341;
+            --team2-color: #58a6ff;
+            --team3-color: #3fb950;
+            --team4-color: #bc8cff;
+        }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
 
-body {
-  background-color: #000;
-  color: var(--text-main);
-  font-family: 'Lato', sans-serif;
-  line-height: 1.5;
-}
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+        }
 
-.slide-container {
-  background-color: var(--navy);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  margin: 0 auto 20px auto;
-  padding: 30px 20px;
-  overflow: hidden;
-  border-bottom: 1px solid var(--gold-dim);
-}
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
 
-@media (min-width: 1281px) {
-  body { padding: 40px 0; }
-  .slide-container {
-    width: 1280px;
-    padding: 50px 60px;
-    border-radius: 8px;
-    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-    border: 1px solid var(--gold-dim);
-    margin-bottom: 40px;
-  }
-}
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 20px;
+            margin-bottom: 25px;
+        }
 
-.slide-container::before {
-  content: '';
-  position: absolute;
-  top: -100px;
-  right: -100px;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(0, 116, 217, 0.1) 0%, transparent 70%);
-  z-index: 0;
-}
+        .header-title h1 {
+            font-size: 2.2rem;
+            color: #ffffff;
+            font-weight: 800;
+            letter-spacing: -1px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
 
-.slide-container > * { position: relative; z-index: 1; }
+        .header-title h1 span {
+            color: var(--primary-gold);
+        }
 
-h1, h2, h3, h4 { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--white); }
-h1 { font-size: clamp(32px, 7vw, 64px); line-height: 1.1; margin-bottom: 15px; }
-.slide-title { 
-  font-size: clamp(22px, 5vw, 32px); 
-  margin-bottom: 25px; 
-  border-left: 5px solid var(--gold); 
-  padding-left: 15px; 
-  text-transform: uppercase; 
-  letter-spacing: 1px; 
-}
-p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
+        .header-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: contain;
+            border: 2px solid #f59e0b;
+            background: #0f172a;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            padding: 4px;
+            box-sizing: border-box;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
 
-/* TEAMBILD-BANNER 7 OBEN / 7 UNTEN */
-.team-banner-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 25px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(212, 175, 55, 0.2);
-  max-width: 620px; /* Erzwungener Umbruch nach genau 7 Elementen */
-}
+        .header-title p {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-top: 4px;
+        }
 
-.team-banner-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 76px;
-  text-align: center;
-}
+        .info-box {
+            background-color: rgba(88, 166, 255, 0.05);
+            border: 1px solid rgba(88, 166, 255, 0.15);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #c9d1d9;
+            font-size: 0.9rem;
+        }
 
-.team-banner-avatar {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  border: 2px solid var(--gold);
-  object-fit: cover;
-  background-color: #000;
-  margin-bottom: 4px;
-}
+        .info-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-.team-banner-name {
-  font-size: 10px;
-  color: var(--text-main);
-  line-height: 1.2;
-  word-break: break-word;
-}
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
 
-/* GRID SYSTEMS */
-.app-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-@media (min-width: 768px) { .app-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1281px) { .app-grid { grid-template-columns: repeat(3, 1fr); } }
+        .stat-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px 15px;
+            text-align: center;
+        }
 
-/* MATCH CARDS */
-.match-card { background: var(--card-bg); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 20px; position: relative; }
-.game-loc-badge { position: absolute; top: 15px; right: 15px; padding: 3px 8px; font-size: 10px; font-weight: bold; border-radius: 4px; text-transform: uppercase; }
-.loc-h { background: rgba(212, 175, 55, 0.2); color: var(--gold); border: 1px solid var(--gold); }
-.loc-a { background: rgba(0, 116, 217, 0.2); color: #0074D9; border: 1px solid #0074D9; }
-.match-card h4 { font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 5px; }
-.match-card .match-title { font-size: 1.2rem; margin-bottom: 5px; font-weight: 700; color: var(--white); padding-right: 40px; }
-.match-card .match-date { font-size: 13px; color: var(--gold); margin-bottom: 15px; }
-.match-status { font-size: 13px; margin-bottom: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; }
-.match-status strong { display: block; color: var(--white); margin-bottom: 2px; font-size: 12px; }
-.status-yes { color: var(--zusage); margin-bottom: 8px; display: block; }
-.status-no { color: var(--absage); display: block; }
+        .stat-card h3 {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
 
-.player-name { font-weight: bold; display: inline-block; font-size: 14px; }
-.action-row { display: flex; gap: 10px; margin-bottom: 10px; }
-.app-btn { flex: 1; padding: 12px; border: 1px solid #333; border-radius: 6px; background: transparent; color: white; cursor: pointer; font-size: 12px; font-weight: 700; text-transform: uppercase; }
-.app-btn.active-yes { background: var(--zusage); border-color: var(--zusage); color: #000; }
-.app-btn.active-no { background: var(--absage); border-color: var(--absage); color: #fff; }
-.app-btn.mf-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
-.app-btn.mf-btn:hover { background: var(--gold-dim); }
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
 
-/* CHAT STYLES */
-.chat-box { background: var(--card-bg); border: 1px solid var(--gold-dim); border-radius: 12px; display: flex; flex-direction: column; height: 350px; overflow: hidden; }
-.chat-messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.2); }
-.chat-msg { background: rgba(255,255,255,0.03); padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--gold); max-width: 85%; }
-.chat-meta { font-size: 10px; color: var(--text-dim); margin-bottom: 3px; display: flex; justify-content: space-between; gap: 15px; }
-.chat-text { font-size: 13px; color: var(--white); word-break: break-word; }
-.chat-input-area { display: flex; padding: 10px; gap: 10px; border-top: 1px solid rgba(255,255,255,0.05); }
-.chat-input-area input { flex: 1; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 6px; font-size: 14px; }
-.chat-input-area input:focus { border-color: var(--gold); outline: none; }
-.chat-send-btn { background: var(--gold); color: #000; border: none; padding: 0 20px; border-radius: 6px; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 12px; }
+        .stat-card .value.points { color: var(--primary-gold); }
+        .stat-card .value.place-gold { color: #f1c40f !important; text-shadow: 0 0 8px rgba(241, 196, 15, 0.3); }
+        .stat-card .value.place-top { color: #2ecc71 !important; }
+        .stat-card .value.place-mid { color: #3498db !important; }
+        .stat-card .value.place-low { color: #e74c3c !important; }
 
-/* PERSONAL CARD TILE */
-.personal-card { background: linear-gradient(135deg, #0c1626 0%, #050a14 100%); border: 1px solid var(--gold); border-radius: 12px; padding: 25px; margin-bottom: 0; display: flex; flex-direction: column; gap: 15px; }
-.personal-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; }
-@media (min-width: 768px) { .personal-stats-grid { grid-template-columns: repeat(5, 1fr); width: auto; gap: 20px; } }
-.stat-box { background: rgba(255,255,255,0.02); padding: 10px 15px; border-radius: 6px; border-left: 3px solid var(--gold); }
-.stat-box .stat-val { font-size: 20px; font-weight: bold; color: var(--white); font-family: 'Poppins'; }
-.stat-box .stat-lbl { font-size: 10px; color: var(--text-dim); text-transform: uppercase; }
+        .toolbar {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
 
-/* KADER LISTE */
-.kader-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-.kader-row { display: flex; flex-direction: column; background: var(--card-bg); padding: 12px 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.03); gap: 10px; }
-@media (min-width: 768px) { 
-  .kader-row { flex-direction: row; align-items: center; justify-content: space-between; padding: 10px 20px; } 
-}
-.kader-left { display: flex; align-items: center; gap: 12px; }
-.kader-rank { font-family: 'Poppins'; font-weight: bold; color: var(--gold); font-size: 16px; width: 22px; }
-.kader-details { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; text-align: center; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px; }
-@media (min-width: 768px) { .kader-details { background: none; padding: 0; gap: 20px; display: flex; } }
-.kader-stat-entry { display: flex; flex-direction: column; }
-@media (min-width: 768px) { .kader-stat-entry { align-items: center; } }
-.kader-stat-entry .val { font-size: 14px; font-weight: bold; color: var(--white); }
-.kader-stat-entry .lbl { font-size: 9px; color: var(--text-dim); text-transform: uppercase; }
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
 
-/* MISSION TILES */
-.tiled-content { display: flex; flex-direction: column; gap: 20px; }
-@media (min-width: 1281px) { .tiled-content { flex-direction: row; } }
-.tile { background: var(--card-bg); padding: 30px; border-radius: 8px; border-top: 4px solid var(--gold); flex: 1; }
-.tile i { font-size: 40px; color: var(--gold); margin-bottom: 15px; }
+        .filter-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            min-width: 130px;
+        }
 
-/* ADMIN BOX MIT SCHLOSS */
-.admin-box { background: var(--card-bg); border: 1px solid var(--gold); border-radius: 12px; padding: 25px; margin-top: 40px; display: none; }
-.admin-box input, .admin-box select { width: 100%; padding: 10px; background: #000; border: 1px solid #333; color: #fff; border-radius: 6px; margin-bottom: 12px; font-size: 14px; }
-.admin-box label { font-size: 12px; color: var(--gold); font-weight: bold; display: block; margin-bottom: 4px; text-transform: uppercase; }
-.double-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .btn {
+            background-color: #21262d;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
 
-#onboarding { position: fixed; inset: 0; background: var(--navy); display: flex; justify-content: center; align-items: center; z-index: 1000; padding: 20px; }
-.onboard-card { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--gold); width: 100%; max-width: 400px; text-align: center; }
-.onboard-card select { width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; margin: 20px 0 10px 0; font-size: 16px; }
-.onboard-card input[type="password"] { width: 100%; padding: 15px; background: #000; border: 1px solid #333; color: white; border-radius: 6px; margin-bottom: 20px; font-size: 16px; text-align: center; }
+        .btn:hover {
+            background-color: #30363d;
+            border-color: #8b949e;
+        }
 
-/* VISUELLE AUFSTELLUNG AUF DER KARTE */
-.aufstellung-display { background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 6px; padding: 12px; margin-top: 15px; font-size: 12px; }
-.aufstellung-display div { margin-bottom: 6px; }
-.aufstellung-display strong { color: var(--gold); text-transform: uppercase; font-size: 10px; display: inline-block; width: 65px; }
+        .btn.active {
+            background-color: var(--primary-gold);
+            color: #000000;
+            border-color: var(--primary-gold);
+        }
+
+        .admin-toggle-btn {
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .admin-toggle-btn:hover {
+            color: var(--primary-gold);
+            border-color: var(--primary-gold);
+        }
+
+        .select-dropdown {
+            background-color: #21262d;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .admin-card {
+            background: #161b22;
+            border: 1px solid var(--primary-gold);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: none;
+        }
+        .match-edit-row {
+            background: #0d1117;
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            display: grid;
+            grid-template-columns: 2fr 2fr 1fr 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+        @media(max-width: 900px) {
+            .match-edit-row { grid-template-columns: 1fr 1fr; }
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            margin-bottom: 2px;
+            text-transform: uppercase;
+        }
+        .form-control {
+            width: 100%;
+            padding: 6px;
+            background: #161b22;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .form-control:focus { border-color: var(--primary-gold); outline: none; }
+
+        .add-match-box {
+            background: #0d1117;
+            border: 1px dashed var(--primary-gold);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+
+        .spieltag-section { margin-bottom: 35px; }
+
+        .spieltag-header-card {
+            background: linear-gradient(135deg, #161b22 0%, #21262d 100%);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary-gold);
+            border-radius: 8px;
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .spieltag-header-card h2 { font-size: 1.25rem; color: #ffffff; font-weight: 700; }
+        .spieltag-header-card .badge-count { font-size: 0.8rem; color: var(--text-muted); background-color: rgba(255, 255, 255, 0.05); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--border-color); }
+
+        .matches-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .match-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .match-card.win { background-color: rgba(46, 160, 67, 0.12) !important; border: 1.5px solid #2ea043 !important; }
+        .match-card.loss { background-color: rgba(248, 81, 73, 0.12) !important; border: 1.5px solid #f85149 !important; }
+        .match-card.draw { background-color: rgba(212, 175, 55, 0.12) !important; border: 1.5px solid #d4af37 !important; }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .team-badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #000;
+        }
+        .team-badge.t1 { background-color: var(--team1-color); }
+        .team-badge.t2 { background-color: var(--team2-color); color: #fff; }
+        .team-badge.t3 { background-color: var(--team3-color); color: #fff; }
+        .team-badge.t4 { background-color: var(--team4-color); color: #fff; }
+
+        .type-tag { padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; text-transform: uppercase; }
+        .type-tag.heim { background-color: rgba(212, 175, 55, 0.15); color: var(--primary-gold); border: 1px solid rgba(212, 175, 55, 0.3); }
+        .type-tag.auswaerts { background-color: rgba(255, 255, 255, 0.08); color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.15); }
+
+        .match-body { padding: 20px 15px; display: flex; flex-direction: column; align-items: center; gap: 6px; flex-grow: 1; }
+        .match-date-info { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+        .match-venue-info { font-size: 0.75rem; color: var(--text-muted); text-align: center; margin-bottom: 6px; font-style: italic; }
+
+        .teams-display { display: flex; justify-content: space-between; align-items: center; width: 100%; font-size: 0.95rem; font-weight: bold; margin-top: 4px; }
+        .team-label { width: 42%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .team-label.highlight { color: var(--primary-gold); font-weight: 800; }
+        .vs { color: var(--text-muted); font-size: 0.8rem; font-weight: normal; }
+
+        .result-display-container { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 5px; }
+        .score-row { display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .score-badge { min-width: 45px; height: 36px; padding: 0 8px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; background-color: #0d1117; border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; }
+        .score-badge.empty { color: #30363d; font-size: 1rem; }
+        .score-divider { font-size: 1.1rem; font-weight: bold; color: var(--text-muted); }
+        .legs-subtext { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
+
+        .match-footer { padding: 10px 15px; border-top: 1px solid var(--border-color); background-color: rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .match-status { font-size: 0.85rem; font-weight: bold; }
+        .match-status.not-played { color: var(--text-muted); }
+        .match-status.win { color: #3fb950; }
+        .match-status.loss { color: #f85149; }
+        .match-status.draw { color: var(--primary-gold); }
+
+        .no-matches-msg { color: var(--text-muted); text-align: center; padding: 40px; font-size: 1rem; background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; }
     </style>
 </head>
 <body>
 
-<div class="slide-container" id="slide1">
-    <div class="title-layout">
-        <p style="color: var(--gold); letter-spacing: 3px; font-weight: 700; font-size: 14px;">PREMIUM SQUAD MANAGEMENT (SUPABASE)</p>
-        <h1>TV Kapellen 1919 e.V. 3<br><span style="color:var(--gold)">Saison 2026/27</span></h1>
-        <p style="max-width: 600px; margin-top: 10px;">Die digitale Zentrale für Kaderplanung, Spieltage und Performance-Tracking.</p>
-        
-        <!-- TEAMBILD-BANNER 7 OBEN / 7 UNTEN -->
-        <div class="team-banner-grid" id="team-banner-container"></div>
+<div class="container">
+    <header>
+        <div class="header-title">
+            <h1>TV Kapellen 1919 e.V. <span>Spieltags - Planer</span> <img src="https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/app-icon.png" alt="TV Kapellen Logo" class="header-logo"></h1>
+            <p>Chronologischer Gesamtspielplan • Saison 26/27 (Supabase Live)</p>
+        </div>
+        <button class="admin-toggle-btn" onclick="toggleAdminMode()">⚙️ Admin-Zugang</button>
+    </header>
 
-        <p style="font-size: 11px; color: var(--gold); margin-top: 20px; letter-spacing: 1px;">Erstellt von Jürgen Schützendorf</p>
+    <div class="info-box">
+        <div class="info-left">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+            </svg>
+            <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
+        </div>
+        <span id="syncStatus" style="font-size: 0.75rem; color: #2ea043;">● Lade Daten...</span>
     </div>
-</div>
 
-<div class="slide-container" id="slide2">
-    <h2 class="slide-title">Mission & Zielsetzung</h2>
-    <div class="content-area">
-        <div class="tiled-content">
-            <div class="tile">
-                <i class="fa-solid fa-bullseye"></i>
-                <h3>Präzision</h3>
-                <p>Dein stärkster Gegner ist nicht der am Board, sondern die Stimme in deinem Kopf. Checke sie aus!</p>
+    <!-- ADMIN BEREICH -->
+    <div class="admin-card" id="adminCard">
+        <div style="font-weight: bold; color: var(--primary-gold); margin-bottom: 15px; font-size: 1rem; display: flex; justify-content: space-between; align-items: center;">
+            <span>✏️ Admin-Modus: Ergebnisse & Spieltage bearbeiten</span>
+            <button class="btn" style="background: var(--primary-gold); color: #000;" onclick="saveAllAdminChanges()">Änderungen Speichern</button>
+        </div>
+        
+        <div class="filter-group" style="margin-bottom: 15px;">
+            <label class="filter-label" style="min-width: 90px;">Spieltag wählen:</label>
+            <select class="select-dropdown" id="adminSpieltagSelect" onchange="changeAdminSpieltag(this.value)">
+                <!-- Dynamisch -->
+            </select>
+        </div>
+        
+        <div id="adminMatchInputsContainer">
+            <!-- Dynamisch -->
+        </div>
+
+        <!-- NEUES SPIEL HINZUFÜGEN -->
+        <div class="add-match-box">
+            <div style="font-weight: bold; color: var(--primary-gold); margin-bottom: 10px; font-size: 0.9rem;">➕ Neues Spiel / Rückrundenspiel hinzufügen</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 10px;">
+                <div class="form-group">
+                    <label>Spieltag (Nr.)</label>
+                    <input type="number" id="new_spieltag" class="form-control" value="10" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Datum</label>
+                    <input type="date" id="new_date" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label>Uhrzeit</label>
+                    <input type="text" id="new_time" class="form-control" value="19.00">
+                </div>
+                <div class="form-group">
+                    <label>Kapellen Team</label>
+                    <select id="new_team" class="form-control">
+                        <option value="TV Kapellen 1">TV Kapellen 1</option>
+                        <option value="TV Kapellen 2">TV Kapellen 2</option>
+                        <option value="TV Kapellen 3" selected>TV Kapellen 3</option>
+                        <option value="TV Kapellen 4">TV Kapellen 4</option>
+                    </select>
+                </div>
             </div>
-            <div class="tile">
-                <i class="fa-solid fa-shield-halved"></i>
-                <h3>Klassenerhalt</h3>
-                <p>Klassenerhalt ist kein Zufall, sondern Teamarbeit – jeder Pfeil zählt für unser Ziel!</p>
+            <div style="display: grid; grid-template-columns: 2fr 2fr 1fr; gap: 10px; margin-bottom: 10px;">
+                <div class="form-group">
+                    <label>Heimmannschaft</label>
+                    <input type="text" id="new_home" class="form-control" placeholder="z.B. TV Kapellen 3">
+                </div>
+                <div class="form-group">
+                    <label>Gastmannschaft</label>
+                    <input type="text" id="new_away" class="form-control" placeholder="z.B. DSC Goch 3">
+                </div>
+                <div class="form-group">
+                    <label>Heimspiel?</label>
+                    <select id="new_ishome" class="form-control">
+                        <option value="true">Ja (Heim)</option>
+                        <option value="false">Nein (Auswärts)</option>
+                    </select>
+                </div>
             </div>
-            <div class="tile">
-                <i class="fa-solid fa-handshake"></i>
-                <h3>Teamgeist</h3>
-                <p>Ein Team, ein Ziel: Gemeinsam ans Oche, gemeinsam jubeln!</p>
+            <div class="form-group" style="margin-bottom: 10px;">
+                <label>Auswärts-Spielstätte</label>
+                <input type="text" id="new_venue" class="form-control" placeholder="z.B. Gartenstr. 9, 47574 Goch">
             </div>
+            <button class="btn" style="background: var(--primary-gold); color: #000; width: 100%;" onclick="addNewMatch()">Spiel zur Datenbank hinzufügen</button>
+        </div>
+
+        <button class="btn" style="background: var(--primary-gold); color: #000; width: 100%; margin-top: 15px;" onclick="saveAllAdminChanges()">Alle Änderungen speichern</button>
+    </div>
+
+    <!-- Live Statistics Dashboard -->
+    <div class="overview-grid">
+        <div class="stat-card">
+            <h3>Tabellenplatz</h3>
+            <div class="value" id="stats-place">-</div>
+        </div>
+        <div class="stat-card">
+            <h3>Spiele Gesamt</h3>
+            <div class="value" id="stats-played">0 / 0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Punkte</h3>
+            <div class="value points" id="stats-points">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>S / U / N</h3>
+            <div class="value" id="stats-record">0 - 0 - 0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Sets</h3>
+            <div class="value" id="stats-sets">0 : 0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Legs</h3>
+            <div class="value" id="stats-legs">0 : 0</div>
         </div>
     </div>
-</div>
 
-<div class="slide-container" id="slide3">
-    <div id="onboarding">
-        <div class="onboard-card">
-            <i class="fa-solid fa-id-badge" style="font-size: 40px; color: var(--gold);"></i>
-            <h2 style="margin-top: 15px; font-size: 24px;">Login</h2>
-            <p>Wähle dein Profil für 26/27</p>
-            <select id="player-select" onchange="togglePasswordInput()">
-                <option value="" disabled selected>Identität wählen...</option>
-                <option value="Jürgen Schützendorf">Jürgen Schützendorf (MF1)</option>
-                <option value="Markus Ginsel">Markus Ginsel (MF2)</option>
-                <option value="Ludger Schledorn">Ludger Schledorn</option>
-                <option value="Niklas Weichert">Niklas Weichert</option>
-                <option value="Michael Müller">Michael Müller</option>
-                <option value="Markus Lenz">Markus Lenz</option>
-                <option value="Andreas Denner">Andreas Denner</option>
-                <option value="Florian Hartwich">Florian Hartwich</option>
-                <option value="Lars Neutag">Lars Neutag</option>
-                <option value="Thomas Kliver">Thomas Kliver</option>
-                <option value="Wolfram Senger">Wolfram Senger</option>
-                <option value="Yannick Steffes">Yannick Steffes</option>
-                <option value="Leon Gerber">Leon Gerber</option>
-                <option value="Gregor Marek">Gregor Marek</option>
+    <!-- Filters -->
+    <div class="toolbar">
+        <div class="filter-group">
+            <span class="filter-label">Auswertung Team:</span>
+            <button class="btn active" onclick="filterStatTeam('TV Kapellen 1', this)">TV Kapellen 1</button>
+            <button class="btn" onclick="filterStatTeam('TV Kapellen 2', this)">TV Kapellen 2</button>
+            <button class="btn" onclick="filterStatTeam('TV Kapellen 3', this)">TV Kapellen 3</button>
+            <button class="btn" onclick="filterStatTeam('TV Kapellen 4', this)">TV Kapellen 4</button>
+        </div>
+
+        <div class="filter-group">
+            <span class="filter-label">Anzeige Filter:</span>
+            <select class="select-dropdown" id="team-select" onchange="filterDisplayTeam(this.value)">
+                <option value="all">Alle Teams</option>
+                <option value="TV Kapellen 1">TV Kapellen 1</option>
+                <option value="TV Kapellen 2">TV Kapellen 2</option>
+                <option value="TV Kapellen 3">TV Kapellen 3</option>
+                <option value="TV Kapellen 4">TV Kapellen 4</option>
             </select>
+
+            <button class="btn active" onclick="filterType('all', this)">Alle Spiele</button>
+            <button class="btn" onclick="filterType('heim', this)">Heimspiele</button>
+            <button class="btn" onclick="filterType('auswaerts', this)">Auswärtsspiele</button>
+            <button class="btn" onclick="filterType('played', this)">Gespielt</button>
             
-            <div id="password-container" style="display: none;">
-                <input type="password" id="mf-password" placeholder="Passwort eingeben...">
-            </div>
-
-            <button class="app-btn active-yes" style="width: 100%; padding: 15px;" onclick="confirmLogin()">Freischalten</button>
-            <p id="login-error" style="color: var(--absage); font-size: 12px; margin-top: 10px; display: none;">Falsches Passwort!</p>
-        </div>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr; gap: 15px; margin-bottom: 25px;" id="dashboard-top-grid">
-        <div id="personal-card-container" style="display:none; margin-bottom: 0;"></div>
-        
-        <div class="match-card" style="margin-bottom: 25px;">
-            <div class="match-title" style="margin-bottom: 15px;">🎯 App-Netzwerk & Quick-Links</div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <a href="https://zechenhauer.github.io/saison26-27/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Saison 26/27</a>
-                <a href="https://zechenhauer.github.io/Orga-Saison-26-27/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Orga & Training</a>
-                <a href="https://zechenhauer.github.io/Spielerkarten-Alle-Liga-Spieler/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Digitale Spielerkarte</a>
-                <a href="https://zechenhauer.github.io/Spieler_Vereinsranking/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Vereins Ranking</a>
-                <a href="https://zechenhauer.github.io/TVK-Tabellen/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Tabellen aller Teams</a>
-                <a href="https://zechenhauer.github.io/dart_spielplaner/" target="_blank" style="display: flex; align-items: center; justify-content: center; padding: 10px 8px; background-color: var(--gold); color: #000; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; box-sizing: border-box;">🔗 App / Spieltage aller Teams</a>
-            </div>
-        </div>
-    </div>
-
-    <h2 class="slide-title">Spieltags-Planer</h2>
-    <div class="content-area">
-        <div id="match-grid" class="app-grid">
-            <p style="text-align:center; padding-top:20px;">Lade Spieldaten aus Supabase...</p>
-        </div>
-        <div style="margin-top: 20px; border-top: 1px solid #222; padding-top: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <span id="active-user" style="color: var(--gold); font-weight: 700; font-size: 14px;"></span>
-            <button onclick="logout()" style="background: none; border: none; color: var(--text-dim); text-decoration: underline; cursor: pointer; font-size: 12px;">Profil wechseln</button>
-        </div>
-    </div>
-
-    <h2 class="slide-title" style="margin-top: 40px;">Team-Pinnwand (Chat)</h2>
-    <div class="content-area">
-        <div class="chat-box">
-            <div class="chat-messages" id="chat-messages-target">
-                <p style="text-align: center; color: var(--text-dim); padding: 20px;">Lade Nachrichten...</p>
-            </div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input-field" placeholder="Nachricht eingeben..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
-                <button class="chat-send-btn" onclick="sendChatMessage()">Senden</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADMIN & EDITOR BEREICH MIT SCHLOSS-SICHERUNG -->
-    <div id="admin-section" class="admin-box">
-        <div style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;" onclick="toggleAdminPanel()">
-            <h3 style="color: var(--gold); margin-bottom: 0;"><i class="fa-solid fa-gear"></i> Admin & Kader-Editor</h3>
-            <i id="admin-lock-icon" class="fa-solid fa-lock" style="color: var(--gold); font-size: 20px;"></i>
-        </div>
-
-        <div id="admin-content-container" style="display: none; margin-top: 20px; border-top: 1px solid rgba(212,175,55,0.2); padding-top: 20px;">
-            <!-- NEUEN SPIELTAG ANLEGEN -->
-            <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; border: 1px solid var(--gold-dim); margin-bottom: 25px;">
-                <h4 style="color: var(--gold); margin-bottom: 12px;"><i class="fa-solid fa-calendar-plus"></i> Neuen Spieltag anlegen</h4>
-                <div class="double-row">
-                    <div><label>Spieltag-Nr. (ID)</label><input type="number" id="new-spieltag-id" placeholder="z.B. 5"></div>
-                    <div><label>Gegner</label><input type="text" id="new-spieltag-gegner" placeholder="z.B. TSV Rumeln 4"></div>
-                </div>
-                <div class="double-row">
-                    <div><label>Datum</label><input type="date" id="new-spieltag-datum"></div>
-                    <div><label>Uhrzeit</label><input type="text" id="new-spieltag-uhrzeit" value="19:00"></div>
-                </div>
-                <div class="double-row">
-                    <div>
-                        <label>Ort (H = Heim, A = Auswärts)</label>
-                        <select id="new-spieltag-ort">
-                            <option value="H">Heim (Jugendzentrum Henri)</option>
-                            <option value="A">Auswärts</option>
-                        </select>
-                    </div>
-                    <div><label>Auswärts-Adresse (optional)</label><input type="text" id="new-spieltag-adresse" placeholder="Nur bei Auswärtsspiel nötig"></div>
-                </div>
-                <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 5px;" onclick="createNewSpieltag()">Spieltag in Datenbank anlegen</button>
-            </div>
-
-            <label>Spieltag auswählen (Für Aufstellung):</label>
-            <select id="admin-match-select" onchange="loadAdminMatchData()">
-                <option value="">Spieltag wählen...</option>
+            <select class="select-dropdown" id="spieltag-select" onchange="filterSpieltag(this.value)">
+                <option value="all">Alle Spieltage</option>
             </select>
-
-            <div style="margin-top: 15px;">
-                <h4 style="color: var(--white); font-size: 13px; margin-bottom: 6px;">Einzelspiele (1 bis 8)</h4>
-                <div id="admin-singles-container"></div>
-            </div>
-
-            <div style="margin-top: 15px;">
-                <h4 style="color: var(--white); font-size: 13px; margin-bottom: 6px;">Doppelspiele (1 bis 4)</h4>
-                <div id="admin-doubles-container"></div>
-            </div>
-            <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 15px;" onclick="saveMatchDetails()">Spieltag-Aufstellung speichern</button>
-
-            <div style="margin-top: 35px; border-top: 1px solid rgba(212,175,55,0.3); padding-top: 20px;">
-                <h4 style="color: var(--gold); margin-bottom: 12px;"><i class="fa-solid fa-chart-simple"></i> Spieler-Statistiken bearbeiten</h4>
-                <label>Spieler auswählen:</label>
-                <select id="admin-stat-player-select" onchange="loadPlayerStatData()">
-                    <option value="">Spieler wählen...</option>
-                </select>
-
-                <div class="double-row" style="margin-top: 10px;">
-                    <div><label>Saison AVG</label><input type="number" step="0.01" id="stat-avg" placeholder="0.00"></div>
-                    <div><label>Highlights</label><input type="text" id="stat-highlights" placeholder="z.B. 180er, 120er Finish"></div>
-                </div>
-                <div class="double-row">
-                    <div><label>Siege</label><input type="number" id="stat-gewonnen" placeholder="0" oninput="calcAdminQuote()"></div>
-                    <div><label>Niederlagen</label><input type="number" id="stat-verloren" placeholder="0" oninput="calcAdminQuote()"></div>
-                </div>
-                <div style="margin-bottom: 12px;">
-                    <label>Automatische Quote (%)</label>
-                    <input type="text" id="stat-quote-display" readonly placeholder="0.00%" style="background: rgba(255,255,255,0.05); color: var(--gold); font-weight: bold;">
-                </div>
-                <button class="app-btn active-yes" style="width: 100%; padding: 12px; margin-top: 10px;" onclick="savePlayerStatistics()">Spieler-Statistik speichern</button>
-            </div>
         </div>
     </div>
-</div>
 
-<div class="slide-container" id="slide4">
-    <h2 class="slide-title">Kader Übersicht (nach Match-Score)</h2>
-    <div class="content-area">
-        <div id="kader-list-target" class="kader-list">
-            <p style="text-align:center; padding:20px;">Lade Statistiken...</p>
-        </div>
-    </div>
-</div>
-
-<div class="slide-container" id="slide5" style="justify-content: center; text-align: center;">
-    <div class="content-area" style="display: flex; align-items: center; justify-content: center;">
-        <div style="max-width: 800px;">
-            <i class="fa-solid fa-quote-left" style="font-size: 40px; color: var(--gold); margin-bottom: 20px;"></i>
-            <h2 style="font-size: clamp(24px, 6vw, 48px); line-height: 1.2; font-weight: 400; font-style: italic;">"Erfolg ist kein Zufall. Es ist Vorbereitung, harte Arbeit und das Wissen, dass das Team hinter einem steht."</h2>
-            <p style="margin-top: 20px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; font-size: 12px;">TV Kapellen 1919 e.V. 3 | 2026/27</p>
-        </div>
-    </div>
-</div>
-
-<div style="text-align: center; padding: 30px 20px; color: var(--text-dim); font-size: 13px; font-style: italic; letter-spacing: 1px;">
-    <i class="fa-solid fa-gavel" style="color: var(--gold); margin-bottom: 8px; display: block; font-size: 16px;"></i>
-    "Wer dreimal die 26 wirft, zahlt die nächste Runde im Henri!" – Der TC hat gesprochen.
+    <div id="matches-container"></div>
 </div>
 
 <script>
@@ -417,552 +506,457 @@ p { font-size: clamp(14px, 4vw, 17px); color: var(--text-dim); }
     const SUPABASE_ANON_KEY = 'sb_publishable_yXEueWILvAq-Vm2VfTuYyg_BIQeE1KK';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    var currentUser = localStorage.getItem('tvk3_user_26_27_supabase');
+    const ADMIN_PIN = "1921";
+    let isAdmin = false;
+    let adminCurrentSpieltag = 1;
+    let rawMatches = [];
 
-    const kaderSpielerListe = [
-        "Jürgen Schützendorf", "Markus Ginsel", "Ludger Schledorn", 
-        "Niklas Weichert", "Michael Müller", "Markus Lenz", "Andreas Denner",
-        "Florian Hartwich", "Lars Neutag", "Thomas Kliver", "Wolfram Senger", "Yannick Steffes", "Leon Gerber", "Gregor Marek"
+    // Fallback-Daten falls Tabelle leer ist
+    const initialSeedData = [
+        { id: 1, spieltag: 1, date: "2026-09-05", time: "19.00", team: "TV Kapellen 3", team_home: "TV Kapellen 2", team_away: "TV Kapellen 3", is_home: false, home_score: 7, away_score: 3, home_legs: 16, away_legs: 10, tabellenplatz: 6, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 2, spieltag: 2, date: "2026-09-18", time: "19.00", team: "TV Kapellen 3", team_home: "TV Kapellen 3", team_away: "DSC Goch 3", is_home: true, home_score: null, away_score: null, home_legs: null, away_legs: null, tabellenplatz: null, venue: "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" },
+        { id: 3, spieltag: 3, date: "2026-09-25", time: "19.00", team: "TV Kapellen 3", team_home: "Rumelner TV 3", team_away: "TV Kapellen 3", is_home: false, home_score: null, away_score: null, home_legs: null, away_legs: null, tabellenplatz: null, venue: "Am Sportplatz 15, 47239 Duisburg" }
     ];
 
-    const mfPasswords = {
-        "Jürgen Schützendorf": "1919",
-        "Markus Ginsel": "4321"
-    };
+    let statSelectedTeam = "TV Kapellen 1";
+    let displaySelectedTeam = "all";
+    let selectedType = "all";
+    let selectedSpieltag = "all";
 
-    let globalSpieltage = [];
-    let globalStatistiken = [];
-    let globalSpielDetails = [];
-
-    const playerColors = {
-        "Jürgen Schützendorf": "#FFD700", "Markus Ginsel": "#FF922B", "Ludger Schledorn": "#FF6B6B",
-        "Niklas Weichert": "#51CF66", "Michael Müller": "#F54927", "Markus Lenz": "#4DABF7",
-        "Andreas Denner": "#ccccff", "Florian Hartwich": "#cdc9c9", "Lars Neutag": "#ff1493",
-        "Thomas Kliver": "#d5c58a", "Wolfram Senger": "#ADD8E6", "Yannick Steffes": "#FFFFFF",
-        "Leon Gerber": "#cdaf95", "Gregor Marek": "#cdcdc1"
-    };
-
-    // SPIELER AVATAR URLS AUS SUPABASE STORAGE
-    function getPlayerAvatarUrl(playerName) {
-        const avatars = {
-            "Andreas Denner": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Andreas%20Denner.png",
-            "Florian Hartwich": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Florian%20Hartwich.png",
-            "Gregor Marek": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/gregor%20marek.png",
-            "Jürgen Schützendorf": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Juergen%20Schuetzendorf.png",
-            "Lars Neutag": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/lars%20Neutag.png",
-            "Leon Gerber": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/leon%20gerber.png",
-            "Ludger Schledorn": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Ludger%20Schledorn.png",
-            "Markus Ginsel": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Markus%20Ginsel.png",
-            "Markus Lenz": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Markus%20Lenz.png",
-            "Michael Müller": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Michael%20Mueller.png",
-            "Niklas Weichert": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Niklas%20Weichert.png",
-            "Thomas Kliver": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Thomas%20Kliver.png",
-            "Wolfram Senger": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Wolfram%20Senger.png",
-            "Yannick Steffes": "https://lhusylpjnujlqomougmg.supabase.co/storage/v1/object/public/Bilder/Yannick%20Steffes.png"
-        };
-        return avatars[playerName] || "";
-    }
-
-    // Teambild-Banner (7 oben, 7 unten)
-    function renderTeamBanner() {
-        const bannerContainer = document.getElementById('team-banner-container');
-        if (!bannerContainer) return;
-        bannerContainer.innerHTML = '';
-
-        kaderSpielerListe.forEach(player => {
-            const avatarUrl = getPlayerAvatarUrl(player);
-            const imgHtml = avatarUrl ? `<img src="${avatarUrl}" class="team-banner-avatar" alt="${player}">` : `<div class="team-banner-avatar" style="display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:bold; color:var(--gold);">${player.charAt(0)}</div>`;
-            
-            const item = document.createElement('div');
-            item.className = 'team-banner-item';
-            item.innerHTML = `
-                ${imgHtml}
-                <span class="team-banner-name">${player.split(' ')[0]}</span>
-            `;
-            bannerContainer.appendChild(item);
-        });
-    }
-
-    function togglePasswordInput() {
-        const sel = document.getElementById('player-select').value;
-        const passContainer = document.getElementById('password-container');
-        document.getElementById('login-error').style.display = 'none';
-        if (sel === "Jürgen Schützendorf" || sel === "Markus Ginsel") {
-            passContainer.style.display = 'block';
-        } else {
-            passContainer.style.display = 'none';
-            document.getElementById('mf-password').value = '';
-        }
-    }
-
-    function confirmLogin() {
-        const sel = document.getElementById('player-select').value;
-        const errLabel = document.getElementById('login-error');
-        if(!sel) return;
-        if (sel === "Jürgen Schützendorf" || sel === "Markus Ginsel") {
-            if (document.getElementById('mf-password').value !== mfPasswords[sel]) {
-                errLabel.style.display = 'block';
-                return;
-            }
-        }
-        localStorage.setItem('tvk3_user_26_27_supabase', sel);
-        currentUser = sel;
-        document.getElementById('onboarding').style.display = 'none';
-        initApp();
-    }
-
-    function logout() {
-        localStorage.removeItem('tvk3_user_26_27_supabase');
-        location.reload();
-    }
-
-    function toggleAdminPanel() {
-        const content = document.getElementById('admin-content-container');
-        const icon = document.getElementById('admin-lock-icon');
-        if (content.style.display === 'none') {
-            const pin = prompt("Bitte Admin-Passwort eingeben:");
-            if (pin === "1919" || pin === "4321") {
-                content.style.display = 'block';
-                icon.className = "fa-solid fa-unlock-keyhole";
-                icon.style.color = "var(--zusage)";
-            } else {
-                alert("Falsches Passwort!");
-            }
-        } else {
-            content.style.display = 'none';
-            icon.className = "fa-solid fa-lock";
-            icon.style.color = "var(--gold)";
-        }
-    }
-
-    function formatPlayerName(name) {
-        if (!name) return "";
-        const cleanName = name.replace(' (TC 1)', '').replace(' (MF1)', '').replace(' (MF2)', '').trim();
-        const color = playerColors[cleanName] || "#e2e8f0";
-        return `<span class="player-name" style="color: ${color};">${cleanName}</span>`;
-    }
-
-    function formatGermanDate(dateStr) {
-        if (!dateStr) return 'Termin offen';
-        let str = dateStr.toString().trim();
-        if (str.toLowerCase().includes('offen') || str === '') return 'Termin offen';
-        if (str.includes('T') && str.includes('-')) {
-            try {
-                const d = new Date(str);
-                if (!isNaN(d.getTime())) {
-                    return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                }
-            } catch (e) {}
-        }
-        return str;
-    }
-
-    async function initApp() {
-        renderTeamBanner();
-        if(!currentUser) return;
-        document.getElementById('onboarding').style.display = 'none';
-        document.getElementById('active-user').innerHTML = formatPlayerName(currentUser);
-
-        if (currentUser === "Jürgen Schützendorf" || currentUser === "Markus Ginsel") {
-            document.getElementById('admin-section').style.display = 'block';
-            buildAdminFormStructure();
-        }
-
+    async function loadFromCloud() {
         try {
-            const [spieltageRes, anmeldungenRes, statistikenRes, chatRes, spielDetailsRes] = await Promise.all([
-                supabaseClient.from('tvk_basis_spieltage').select('*').order('id', { ascending: true }),
-                supabaseClient.from('tvk_basis_anmeldungen').select('*'),
-                supabaseClient.from('tvk_basis_kader_statistiken').select('*'),
-                supabaseClient.from('tvk_basis_chat_nachrichten').select('*').order('created_at', { ascending: true }),
-                supabaseClient.from('tvk_basis_spiel_details').select('*')
-            ]);
+            let { data, error } = await supabaseClient
+                .from('spieltage_planer')
+                .select('*')
+                .order('spieltag', { ascending: true });
 
-            globalSpieltage = spieltageRes.data || [];
-            globalStatistiken = statistikenRes.data || [];
-            globalSpielDetails = spielDetailsRes.data || [];
+            if (error) throw error;
 
-            const adminSelect = document.getElementById('admin-match-select');
-            adminSelect.innerHTML = '<option value="">Spieltag wählen...</option>';
-            globalSpieltage.forEach(m => {
-                adminSelect.innerHTML += `<option value="${m.id}">Spieltag ${m.id} vs. ${m.gegner || 'TBA'}</option>`;
-            });
-
-            const statPlayerSelect = document.getElementById('admin-stat-player-select');
-            statPlayerSelect.innerHTML = '<option value="">Spieler wählen...</option>';
-            kaderSpielerListe.forEach(p => {
-                statPlayerSelect.innerHTML += `<option value="${p}">${p}</option>`;
-            });
-
-            const matches = globalSpieltage.map(m => {
-                const matchAnmeldungen = (anmeldungenRes.data || []).filter(a => a.spieltag_id === m.id);
-                return {
-                    ...m,
-                    zusagen: matchAnmeldungen.filter(a => a.status === 'yes').map(a => a.spieler),
-                    absagen: matchAnmeldungen.filter(a => a.status === 'no').map(a => a.spieler)
-                };
-            });
-
-            renderDashboard(matches, document.getElementById('match-grid'));
-            renderKaderAndPersonalCard(globalStatistiken, document.getElementById('kader-list-target'));
-            renderChat(chatRes.data || [], document.getElementById('chat-messages-target'));
-
-        } catch (err) {
-            console.error("Fehler beim Laden von Supabase:", err);
-        }
-    }
-
-    async function createNewSpieltag() {
-        const id = parseInt(document.getElementById('new-spieltag-id').value);
-        const gegner = document.getElementById('new-spieltag-gegner').value.trim();
-        const datum = document.getElementById('new-spieltag-datum').value;
-        const uhrzeit = document.getElementById('new-spieltag-uhrzeit').value.trim();
-        const ort = document.getElementById('new-spieltag-ort').value;
-        const adresse = document.getElementById('new-spieltag-adresse').value.trim();
-
-        if (!id || !gegner || !datum) {
-            alert("Bitte mindestens Spieltag-Nr, Gegner und Datum ausfüllen!");
-            return;
-        }
-
-        const payload = {
-            id: id,
-            gegner: gegner,
-            datum: datum,
-            uhrzeit: uhrzeit || "19:00",
-            ort: ort,
-            adresse: adresse || null
-        };
-
-        const { error } = await supabaseClient.from('tvk_basis_spieltage').upsert(payload);
-        if (error) {
-            alert("Fehler beim Speichern: " + error.message);
-        } else {
-            alert(`Spieltag ${id} gegen ${gegner} erfolgreich angelegt!`);
-            document.getElementById('new-spieltag-id').value = '';
-            document.getElementById('new-spieltag-gegner').value = '';
-            document.getElementById('new-spieltag-datum').value = '';
-            document.getElementById('new-spieltag-adresse').value = '';
-            initApp();
-        }
-    }
-
-    function buildAdminFormStructure() {
-        const singlesContainer = document.getElementById('admin-singles-container');
-        singlesContainer.innerHTML = '';
-        let playerOpts = '<option value="">-- Spieler wählen --</option>' + kaderSpielerListe.map(p => {
-            const color = playerColors[p] || "#fff";
-            return `<option value="${p}" style="color:${color};">${p}</option>`;
-        }).join('');
-
-        for (let i = 1; i <= 8; i++) {
-            singlesContainer.innerHTML += `
-                <div style="margin-bottom: 6px;">
-                    <label style="font-size:11px;">Einzel ${i}:</label>
-                    <select id="admin-single-${i}" style="color:var(--white);">${playerOpts}</select>
-                </div>`;
-        }
-
-        const doublesContainer = document.getElementById('admin-doubles-container');
-        doublesContainer.innerHTML = '';
-        for (let i = 1; i <= 4; i++) {
-            doublesContainer.innerHTML += `
-                <div style="margin-bottom: 10px;">
-                    <label style="font-size:11px;">Doppel ${i} (2 Spieler):</label>
-                    <div class="double-row">
-                        <select id="admin-double-${i}-p1" style="color:var(--white);">${playerOpts}</select>
-                        <select id="admin-double-${i}-p2" style="color:var(--white);">${playerOpts}</select>
-                    </div>
-                </div>`;
-        }
-    }
-
-    async function loadAdminMatchData() {
-        const matchId = document.getElementById('admin-match-select').value;
-        if (!matchId) return;
-
-        for (let i = 1; i <= 8; i++) document.getElementById(`admin-single-${i}`).value = "";
-        for (let i = 1; i <= 4; i++) {
-            document.getElementById(`admin-double-${i}-p1`).value = "";
-            document.getElementById(`admin-double-${i}-p2`).value = "";
-        }
-
-        const matchDetails = globalSpielDetails.filter(d => d.spieltag_id == matchId);
-        matchDetails.forEach(row => {
-            if (row.kategorie === 'Einzel') {
-                const sel = document.getElementById(`admin-single-${row.spiel_nummer}`);
-                if (sel) sel.value = row.spieler_1 || "";
-            } else if (row.kategorie === 'Doppel') {
-                const p1Sel = document.getElementById(`admin-double-${row.spiel_nummer}-p1`);
-                const p2Sel = document.getElementById(`admin-double-${row.spiel_nummer}-p2`);
-                if (p1Sel) p1Sel.value = row.spieler_1 || "";
-                if (p2Sel) p2Sel.value = row.spieler_2 || "";
-            }
-        });
-    }
-
-    function loadPlayerStatData() {
-        const playerName = document.getElementById('admin-stat-player-select').value;
-        if (!playerName) return;
-
-        const pStat = globalStatistiken.find(s => s.spieler.toLowerCase() === playerName.toLowerCase());
-        document.getElementById('stat-avg').value = pStat ? pStat.avg : "";
-        document.getElementById('stat-gewonnen').value = pStat ? pStat.gewonnen : "";
-        document.getElementById('stat-verloren').value = pStat ? pStat.verloren : "";
-        document.getElementById('stat-highlights').value = pStat ? pStat.highlights : "";
-        calcAdminQuote();
-    }
-
-    function calcAdminQuote() {
-        const g = parseInt(document.getElementById('stat-gewonnen').value) || 0;
-        const v = parseInt(document.getElementById('stat-verloren').value) || 0;
-        const total = g + v;
-        const quote = total > 0 ? (g / total) * 100 : 0;
-        document.getElementById('stat-quote-display').value = quote.toFixed(2) + '%';
-    }
-
-    async function savePlayerStatistics() {
-        const playerName = document.getElementById('admin-stat-player-select').value;
-        if (!playerName) {
-            alert("Bitte zuerst einen Spieler auswählen!");
-            return;
-        }
-
-        const g = parseInt(document.getElementById('stat-gewonnen').value) || 0;
-        const v = parseInt(document.getElementById('stat-verloren').value) || 0;
-        const spiele = g + v;
-        const quote = spiele > 0 ? (g / spiele) * 100 : 0;
-
-        const payload = {
-            spieler: playerName,
-            quote: parseFloat(quote.toFixed(2)),
-            avg: parseFloat(document.getElementById('stat-avg').value) || 0,
-            spiele: spiele,
-            gewonnen: g,
-            verloren: v,
-            highlights: document.getElementById('stat-highlights').value || ""
-        };
-
-        await supabaseClient.from('tvk_basis_kader_statistiken').upsert(payload, { onConflict: 'spieler' });
-        alert(`Statistik für ${playerName} erfolgreich gespeichert!`);
-        initApp();
-    }
-
-    async function saveMatchDetails() {
-        const matchId = document.getElementById('admin-match-select').value;
-        if (!matchId) {
-            alert("Bitte zuerst einen Spieltag auswählen!");
-            return;
-        }
-
-        let detailsToSave = [];
-        for (let i = 1; i <= 8; i++) {
-            const player = document.getElementById(`admin-single-${i}`).value;
-            if (player) {
-                detailsToSave.push({ spieltag_id: parseInt(matchId), kategorie: 'Einzel', spiel_nummer: i, spieler_1: player, spieler_2: null, gewonnen: true });
-            }
-        }
-        for (let i = 1; i <= 4; i++) {
-            const p1 = document.getElementById(`admin-double-${i}-p1`).value;
-            const p2 = document.getElementById(`admin-double-${i}-p2`).value;
-            if (p1 && p2) {
-                detailsToSave.push({ spieltag_id: parseInt(matchId), kategorie: 'Doppel', spiel_nummer: i, spieler_1: p1, spieler_2: p2, gewonnen: true });
-            }
-        }
-
-        await supabaseClient.from('tvk_basis_spiel_details').delete().eq('spieltag_id', matchId);
-        if (detailsToSave.length > 0) {
-            const { error } = await supabaseClient.from('tvk_basis_spiel_details').insert(detailsToSave);
-            if (error) {
-                alert("Fehler beim Speichern der Aufstellung: " + error.message);
+            if (data && data.length > 0) {
+                rawMatches = data.map(m => ({
+                    id: m.id,
+                    spieltag: m.spieltag,
+                    date: m.date,
+                    time: m.time,
+                    team: m.team,
+                    teamHome: m.team_home,
+                    teamAway: m.team_away,
+                    isHome: m.is_home,
+                    homeScore: m.home_score,
+                    awayScore: m.away_score,
+                    homeLegs: m.home_legs,
+                    awayLegs: m.away_legs,
+                    tabellenplatz: m.tabellenplatz,
+                    venue: m.venue
+                }));
+                document.getElementById('syncStatus').textContent = '● Cloud Verbunden';
+                document.getElementById('syncStatus').style.color = '#2ea043';
+            } else {
+                // Initial befüllen falls leer
+                for(let item of initialSeedData) {
+                    await supabaseClient.from('spieltage_planer').insert([item]);
+                }
+                loadFromCloud();
                 return;
             }
+        } catch (e) {
+            console.error('Ladefehler:', e);
+            document.getElementById('syncStatus').textContent = '● Sync Fehler';
+            document.getElementById('syncStatus').style.color = '#f85149';
         }
-
-        alert("Spieltag-Aufstellung erfolgreich gespeichert!");
         initApp();
     }
 
-    function renderChat(chatMsgs, container) {
-        container.innerHTML = '';
-        if(!chatMsgs || chatMsgs.length === 0) {
-            container.innerHTML = '<p style="text-align: center; color: var(--text-dim); padding: 20px;">Noch keine Nachrichten vorhanden. Schreib die erste!</p>';
+    async function saveMatchToCloud(matchObj) {
+        let dbRow = {
+            id: matchObj.id,
+            spieltag: matchObj.spieltag,
+            date: matchObj.date,
+            time: matchObj.time,
+            team: matchObj.team,
+            team_home: matchObj.teamHome,
+            team_away: matchObj.teamAway,
+            is_home: matchObj.isHome,
+            home_score: matchObj.homeScore,
+            away_score: matchObj.awayScore,
+            home_legs: matchObj.homeLegs,
+            away_legs: matchObj.awayLegs,
+            tabellenplatz: matchObj.tabellenplatz,
+            venue: matchObj.venue
+        };
+
+        let { error } = await supabaseClient.from('spieltage_planer').upsert(dbRow);
+        if (error) {
+            alert("Fehler beim Speichern in Supabase: " + error.message);
+        }
+    }
+
+    function toggleAdminMode() {
+        const adminCard = document.getElementById('adminCard');
+        if (isAdmin) {
+            isAdmin = false;
+            adminCard.style.display = 'none';
+            initApp();
             return;
         }
-        chatMsgs.forEach(msg => {
-            const div = document.createElement('div');
-            div.className = 'chat-msg';
-            if (msg.spieler === currentUser) {
-                div.style.alignSelf = 'flex-end';
-                div.style.borderLeft = 'none';
-                div.style.borderRight = '3px solid var(--gold)';
-            } else {
-                div.style.alignSelf = 'flex-start';
-            }
-            const timeFormatted = msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '';
-            div.innerHTML = `
-                <div class="chat-meta"><strong>${formatPlayerName(msg.spieler)}</strong><span>${timeFormatted}</span></div>
-                <div class="chat-text">${msg.text}</div>
-            `;
-            container.appendChild(div);
-        });
-        container.scrollTop = container.scrollHeight;
+        let pin = prompt("Bitte Admin-PIN eingeben:");
+        if (pin === ADMIN_PIN) {
+            isAdmin = true;
+            adminCard.style.display = 'block';
+            populateAdminDropdowns();
+            renderAdminInputs();
+        } else if (pin !== null) {
+            alert("Falsche PIN!");
+        }
     }
 
-    async function sendChatMessage() {
-        const input = document.getElementById('chat-input-field');
-        const text = input.value.trim();
-        if(!text) return;
-        input.value = '';
-
-        await supabaseClient.from('tvk_basis_chat_nachrichten').insert({
-            spieler: currentUser,
-            text: text
+    function populateAdminDropdowns() {
+        const select = document.getElementById("adminSpieltagSelect");
+        select.innerHTML = '';
+        const spieltage = [...new Set(rawMatches.map(m => m.spieltag))].sort((a, b) => a - b);
+        spieltage.forEach(st => {
+            let opt = document.createElement("option");
+            opt.value = st;
+            opt.textContent = `${st}. Spieltag`;
+            if (st === adminCurrentSpieltag) opt.selected = true;
+            select.appendChild(opt);
         });
-        initApp();
     }
 
-    function renderDashboard(matches, container) {
+    function changeAdminSpieltag(val) {
+        adminCurrentSpieltag = parseInt(val);
+        renderAdminInputs();
+    }
+
+    function renderAdminInputs() {
+        populateAdminDropdowns();
+        let container = document.getElementById('adminMatchInputsContainer');
         container.innerHTML = '';
+
+        let matches = rawMatches.filter(m => m.spieltag === adminCurrentSpieltag);
+        if (matches.length === 0) {
+            container.innerHTML = `<div style="color: var(--text-muted); text-align:center; padding:10px;">Keine Spiele für diesen Spieltag.</div>`;
+            return;
+        }
 
         matches.forEach(m => {
-            const card = document.createElement('div');
-            card.className = 'match-card';
-            const isYes = m.zusagen.includes(currentUser);
-            const isNo = m.absagen.includes(currentUser);
-            const formattedZusagen = m.zusagen.map(formatPlayerName);
-            const formattedAbsagen = m.absagen.map(formatPlayerName);
-
-            const ortClean = m.ort ? m.ort.toString().trim().toUpperCase() : "";
-            const isHeim = ortClean === 'H' || ortClean === 'HEIM';
-            const badgeClass = isHeim ? 'loc-h' : 'loc-a';
-            const badgeText = isHeim ? 'Heim' : 'Auswärts';
-            const spielortInfo = m.adresse || (isHeim ? "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" : "Adresse wird noch bekannt gegeben");
-
-            const adresseHtml = `
-                <div style="margin-top: 8px; font-size: 11px; color: var(--text-dim); background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 4px; border-left: 2px solid ${isHeim ? 'var(--gold)' : 'var(--accent-blue)'};">
-                    <i class="fa-solid fa-location-dot" style="color: ${isHeim ? 'var(--gold)' : 'var(--accent-blue)'}; margin-right: 5px;"></i> 
-                    <strong>Spielort:</strong><br>${spielortInfo}
-                </div>`;
-
-            const matchDetails = globalSpielDetails.filter(d => d.spieltag_id == m.id);
-            let aufstellungHtml = "";
-            if (matchDetails.length > 0) {
-                const einzelspiele = matchDetails.filter(d => d.kategorie === 'Einzel').sort((a,b) => a.spiel_nummer - b.spiel_nummer);
-                const doppelspiele = matchDetails.filter(d => d.kategorie === 'Doppel').sort((a,b) => a.spiel_nummer - b.spiel_nummer);
-
-                let einzelStr = einzelspiele.map(e => `E${e.spiel_nummer}: ${formatPlayerName(e.spieler_1)}`).join(' | ');
-                let doppelStr = doppelspiele.map(d => `D${d.spiel_nummer}: ${formatPlayerName(d.spieler_1)} / ${formatPlayerName(d.spieler_2)}`).join(' | ');
-
-                aufstellungHtml = `
-                    <div class="aufstellung-display">
-                        <div style="font-weight:bold; color:var(--gold); margin-bottom:6px; border-bottom:1px solid rgba(212,175,55,0.2); padding-bottom:4px;">🎯 Offizielle Aufstellung</div>
-                        ${einzelStr ? `<div><strong>Einzel:</strong> ${einzelStr}</div>` : ''}
-                        ${doppelStr ? `<div><strong>Doppel:</strong> ${doppelStr}</div>` : ''}
-                    </div>
-                `;
-            }
-
-            let actionContent = `
-                <div class="action-row">
-                    <button class="app-btn ${isYes ? 'active-yes' : ''}" onclick="updateStatus(${m.id}, 'yes')">Zusage</button>
-                    <button class="app-btn ${isNo ? 'active-no' : ''}" onclick="updateStatus(${m.id}, 'no')">Absage</button>
-                </div>
-            `;
-
-            if (m.ergebnis && m.ergebnis !== "") {
-                actionContent = `<div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--gold); text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; font-family: 'Poppins'; color: var(--white);">ENDERGEBNIS: <span style="color: var(--gold);">${m.ergebnis}</span></div>`;
-            }
-
-            card.innerHTML = `
-                <span class="game-loc-badge ${badgeClass}">${badgeText}</span>
-                <h4>Spieltag ${m.id}</h4>
-                <div class="match-title">vs. ${m.gegner || 'TBA'}</div>
-                <div class="match-date"><i class="fa-regular fa-clock"></i> ${formatGermanDate(m.datum)} - ${m.uhrzeit} Uhr</div>
-                ${adresseHtml}
-                <div class="match-status" style="margin-top: 15px;">
-                    <span class="status-yes"><strong>Dabei (${m.zusagen.length}):</strong> ${m.zusagen.length > 0 ? formattedZusagen.join(', ') : '<i>Keine Zusagen</i>'}</span>
-                    <span class="status-no"><strong>Absagen (${m.absagen.length}):</strong> ${m.absagen.length > 0 ? formattedAbsagen.join(', ') : '<i>Keine Absagen</i>'}</span>
-                </div>
-                ${aufstellungHtml}
-                <div style="margin-top:15px;">${actionContent}</div>
-            `;
-            container.appendChild(card);
-        });
-    }
-
-    function renderKaderAndPersonalCard(stats, container) {
-        container.innerHTML = '';
-        const personalContainer = document.getElementById('personal-card-container');
-        personalContainer.innerHTML = '';
-        personalContainer.style.display = 'none';
-        const cleanUser = currentUser ? currentUser.replace(' (TC 1)', '').replace(' (MF1)', '').replace(' (MF2)', '').trim() : '';
-
-        const sortedStats = [...stats].sort((a, b) => {
-            if (b.quote !== a.quote) {
-                return b.quote - a.quote;
-            }
-            return (b.avg || 0) - (a.avg || 0);
-        });
-
-        sortedStats.forEach((p, index) => {
-            const row = document.createElement('div');
-            row.className = 'kader-row';
-            const hl = p.highlights ? `<div style="margin-top:10px; padding:8px 12px; background:rgba(12,22,38,0.6); border:1px solid var(--gold); border-radius:6px; font-size:11px;"><i class="fa-solid fa-star" style="color:var(--gold);"></i> <strong>Highlights:</strong> ${p.highlights}</div>` : '';
+            let row = document.createElement('div');
+            row.className = 'match-edit-row';
             row.innerHTML = `
-                <div style="width:100%;">
-                    <div style="display:flex; align-items:center; justify-content:space-between;">
-                        <div class="kader-left">
-                            <div class="kader-rank">#${index+1}</div>
-                            <div class="name-p"></div>
-                        </div>
-                        <div class="kader-details">
-                            <div class="kader-stat-entry"><span class="val" style="color:var(--gold);">${(p.quote || 0).toFixed(2)}%</span><span class="lbl">Quote</span></div>
-                            <div class="kader-stat-entry"><span class="val">${(p.avg || 0).toFixed(2)}</span><span class="lbl">AVG</span></div>
-                            <div class="kader-stat-entry"><span class="val">${p.spiele || 0}</span><span class="lbl">Spiele</span></div>
-                            <div class="kader-stat-entry"><span class="val" style="color:var(--zusage);">${p.gewonnen || 0}</span><span class="lbl">G</span></div>
-                            <div class="kader-stat-entry"><span class="val" style="color:var(--absage);">${p.verloren || 0}</span><span class="lbl">V</span></div>
-                        </div>
-                    </div>${hl}
+                <div>
+                    <label>Heim (${m.team})</label>
+                    <span style="font-size:0.8rem; font-weight:bold;">${m.teamHome}</span>
+                </div>
+                <div>
+                    <label>Gast</label>
+                    <span style="font-size:0.8rem; font-weight:bold;">${m.teamAway}</span>
+                </div>
+                <div class="form-group">
+                    <label>Sets Heim</label>
+                    <input type="number" id="hs_${m.id}" class="form-control" value="${m.homeScore !== null ? m.homeScore : ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Sets Gast</label>
+                    <input type="number" id="as_${m.id}" class="form-control" value="${m.awayScore !== null ? m.awayScore : ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Legs Heim</label>
+                    <input type="number" id="hl_${m.id}" class="form-control" value="${m.homeLegs !== null ? m.homeLegs : ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Legs Gast</label>
+                    <input type="number" id="al_${m.id}" class="form-control" value="${m.awayLegs !== null ? m.awayLegs : ''}" min="0">
+                </div>
+                <div class="form-group">
+                    <label>Tabelle (${m.team.replace('TV Kapellen ', 'Team ')})</label>
+                    <input type="number" id="tp_${m.id}" class="form-control" value="${m.tabellenplatz !== null ? m.tabellenplatz : ''}" min="1" placeholder="Pl.">
                 </div>
             `;
-            row.querySelector('.name-p').innerHTML = formatPlayerName(p.spieler);
             container.appendChild(row);
-
-            if (p.spieler.toLowerCase() === cleanUser.toLowerCase()) {
-                personalContainer.style.display = 'block';
-                const topGrid = document.getElementById('dashboard-top-grid');
-                if(window.innerWidth > 768) { topGrid.style.gridTemplateColumns = '1fr 1fr'; }
-
-                personalContainer.innerHTML = `
-                    <div class="personal-card" style="margin-bottom: 0;">
-                        <div>
-                            <p style="color:var(--gold); font-size:11px; font-weight:bold; letter-spacing:2px;">DEINE LIVE PERFORMANCE</p>
-                            <h3 style="font-size:22px;">Hallo, ${p.spieler}!</h3>
-                            <p style="font-size:12px; margin-top:3px;"><i class="fa-solid fa-star" style="color:var(--gold);"></i> Highlights: ${p.highlights||'Keine'}</p>
-                        </div>
-                        <div class="personal-stats-grid">
-                            <div class="stat-box"><div class="stat-val" style="color:var(--gold);">${(p.quote || 0).toFixed(2)}%</div><div class="stat-lbl">Match-Score</div></div>
-                            <div class="stat-box"><div class="stat-val">${(p.avg || 0).toFixed(2)}</div><div class="stat-lbl">Saison AVG</div></div>
-                            <div class="stat-box"><div class="stat-val">${p.spiele || 0}</div><div class="stat-lbl">Matches</div></div>
-                            <div class="stat-box"><div class="stat-val" style="color:var(--zusage);">${p.gewonnen || 0}</div><div class="stat-lbl">Siege</div></div>
-                            <div class="stat-box"><div class="stat-val" style="color:var(--absage);">${p.verloren || 0}</div><div class="stat-lbl">Niederl.</div></div>
-                        </div>
-                    </div>
-                `;
-            }
         });
     }
 
-    async function updateStatus(matchId, status) {
-        await supabaseClient.from('tvk_basis_anmeldungen').upsert({
-            spieltag_id: matchId,
-            spieler: currentUser,
-            status: status
-        }, { onConflict: 'spieltag_id,spieler' });
+    async function saveAllAdminChanges() {
+        let matches = rawMatches.filter(m => m.spieltag === adminCurrentSpieltag);
+        for (let m of matches) {
+            let hs = document.getElementById(`hs_${m.id}`).value;
+            let as = document.getElementById(`as_${m.id}`).value;
+            let hl = document.getElementById(`hl_${m.id}`).value;
+            let al = document.getElementById(`al_${m.id}`).value;
+            let tp = document.getElementById(`tp_${m.id}`).value;
+
+            m.homeScore = hs !== '' ? parseInt(hs) : null;
+            m.awayScore = as !== '' ? parseInt(as) : null;
+            m.homeLegs = hl !== '' ? parseInt(hl) : null;
+            m.awayLegs = al !== '' ? parseInt(al) : null;
+            m.tabellenplatz = tp !== '' ? parseInt(tp) : null;
+
+            await saveMatchToCloud(m);
+        }
+
         initApp();
+        alert("Spieltag erfolgreich in Supabase gespeichert!");
     }
 
-    if(currentUser) initApp();
+    async function addNewMatch() {
+        let st = parseInt(document.getElementById('new_spieltag').value);
+        let date = document.getElementById('new_date').value;
+        let time = document.getElementById('new_time').value;
+        let team = document.getElementById('new_team').value;
+        let teamHome = document.getElementById('new_home').value;
+        let teamAway = document.getElementById('new_away').value;
+        let isHome = document.getElementById('new_ishome').value === 'true';
+        let venue = document.getElementById('new_venue').value;
+
+        if (!teamHome || !teamAway) {
+            alert("Bitte Heimmannschaft und Gastmannschaft angeben!");
+            return;
+        }
+
+        let newId = rawMatches.length > 0 ? Math.max(...rawMatches.map(m => m.id)) + 1 : 1;
+
+        let newMatch = {
+            id: newId,
+            spieltag: st,
+            date: date,
+            time: time,
+            team: team,
+            teamHome: teamHome,
+            teamAway: teamAway,
+            isHome: isHome,
+            homeScore: null,
+            awayScore: null,
+            homeLegs: null,
+            awayLegs: null,
+            tabellenplatz: null,
+            venue: isHome ? "Jugendzentrum Henri, Industriestr. 9b, 47447 Moers" : venue
+        };
+
+        rawMatches.push(newMatch);
+        await saveMatchToCloud(newMatch);
+
+        adminCurrentSpieltag = st;
+        renderAdminInputs();
+        initApp();
+        alert("Neues Spiel erfolgreich zur Datenbank hinzugefügt!");
+    }
+
+    function initApp() {
+        populateSpieltagDropdown();
+        setAktuellenSpieltag();
+        renderMatches();
+    }
+
+    function populateSpieltagDropdown() {
+        const select = document.getElementById("spieltag-select");
+        select.innerHTML = '<option value="all">Alle Spieltage</option>';
+        
+        const spieltage = [...new Set(rawMatches.map(m => m.spieltag))].sort((a, b) => a - b);
+        spieltage.forEach(st => {
+            const option = document.createElement("option");
+            option.value = st;
+            option.textContent = `${st}. Spieltag`;
+            if (st == selectedSpieltag) option.selected = true;
+            select.appendChild(option);
+        });
+    }
+
+    function setAktuellenSpieltag() {
+        if (rawMatches.length === 0) return;
+        const heute = new Date().toISOString().split('T')[0];
+        const naechstesSpiel = rawMatches.find(m => m.date && m.date >= heute);
+
+        if (naechstesSpiel && selectedSpieltag === "all") {
+            selectedSpieltag = naechstesSpiel.spieltag;
+            document.getElementById("spieltag-select").value = selectedSpieltag;
+        }
+    }
+
+    function getTeamBadgeClass(teamName) {
+        if (teamName.includes("1")) return "t1";
+        if (teamName.includes("2")) return "t2";
+        if (teamName.includes("3")) return "t3";
+        if (teamName.includes("4")) return "t4";
+        return "t1";
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return "";
+        if (dateStr.includes('-')) {
+            const [year, month, day] = dateStr.split('-');
+            return `${day}.${month}.${year}`;
+        }
+        return dateStr;
+    }
+
+    function renderMatches() {
+        const container = document.getElementById("matches-container");
+        container.innerHTML = "";
+
+        let statsPlayed = 0, statsPoints = 0, statsWins = 0, statsDraws = 0, statsLosses = 0;
+        let statsSetsFor = 0, statsSetsAgainst = 0, statsLegsFor = 0, statsLegsAgainst = 0;
+
+        rawMatches.forEach(match => {
+            if (match.team === statSelectedTeam) {
+                const isPlayed = match.homeScore !== null && match.awayScore !== null && !isNaN(match.homeScore) && !isNaN(match.awayScore);
+                if (isPlayed) {
+                    statsPlayed++;
+                    const h = match.homeScore, a = match.awayScore;
+                    const hLegs = match.homeLegs !== null ? match.homeLegs : 0;
+                    const aLegs = match.awayLegs !== null ? match.awayLegs : 0;
+
+                    const kapellenScore = match.isHome ? h : a;
+                    const opponentScore = match.isHome ? a : h;
+                    const kapellenLegs = match.isHome ? hLegs : aLegs;
+                    const opponentLegs = match.isHome ? aLegs : hLegs;
+
+                    statsSetsFor += kapellenScore;
+                    statsSetsAgainst += opponentScore;
+                    statsLegsFor += kapellenLegs;
+                    statsLegsAgainst += opponentLegs;
+
+                    if (kapellenScore > opponentScore) { statsPoints += 2; statsWins++; }
+                    else if (kapellenScore < opponentScore) { statsLosses++; }
+                    else { statsPoints += 1; statsDraws++; }
+                }
+            }
+        });
+
+        const teamMatchesWithPlace = rawMatches
+            .filter(m => m.team === statSelectedTeam && m.tabellenplatz !== null && !isNaN(m.tabellenplatz))
+            .sort((a, b) => b.spieltag - a.spieltag);
+
+        const placeEl = document.getElementById("stats-place");
+        placeEl.className = "value";
+
+        if (teamMatchesWithPlace.length > 0) {
+            const currentPlace = teamMatchesWithPlace[0].tabellenplatz;
+            placeEl.textContent = `${currentPlace}.`;
+            if (currentPlace === 1) placeEl.classList.add("place-gold");
+            else if (currentPlace <= 3) placeEl.classList.add("place-top");
+            else if (currentPlace <= 6) placeEl.classList.add("place-mid");
+            else placeEl.classList.add("place-low");
+        } else {
+            placeEl.textContent = "-";
+        }
+
+        const teamTotalMatches = rawMatches.filter(m => m.team === statSelectedTeam).length;
+        document.getElementById("stats-played").textContent = `${statsPlayed} / ${teamTotalMatches}`;
+        document.getElementById("stats-points").textContent = statsPoints;
+        document.getElementById("stats-record").textContent = `${statsWins} - ${statsDraws} - ${statsLosses}`;
+        document.getElementById("stats-sets").textContent = `${statsSetsFor} : ${statsSetsAgainst}`;
+        document.getElementById("stats-legs").textContent = `${statsLegsFor} : ${statsLegsAgainst}`;
+
+        const filteredMatches = rawMatches.filter(match => {
+            if (displaySelectedTeam !== "all" && match.team !== displaySelectedTeam) return false;
+            if (selectedType === "heim" && !match.isHome) return false;
+            if (selectedType === "auswaerts" && match.isHome) return false;
+            if (selectedSpieltag !== "all" && match.spieltag != selectedSpieltag) return false;
+
+            const isPlayed = match.homeScore !== null && match.awayScore !== null && !isNaN(match.homeScore) && !isNaN(match.awayScore);
+            if (selectedType === "played" && !isPlayed) return false;
+            return true;
+        });
+
+        if (filteredMatches.length === 0) {
+            container.innerHTML = `<div class="no-matches-msg">Keine Spiele für die ausgewählten Filter gefunden.</div>`;
+            return;
+        }
+
+        const groupedBySpieltag = {};
+        filteredMatches.forEach(match => {
+            if (!groupedBySpieltag[match.spieltag]) groupedBySpieltag[match.spieltag] = [];
+            groupedBySpieltag[match.spieltag].push(match);
+        });
+
+        const sortedSpieltage = Object.keys(groupedBySpieltag).sort((a, b) => parseInt(a) - parseInt(b));
+
+        sortedSpieltage.forEach(st => {
+            const matchesForSt = groupedBySpieltag[st];
+            const section = document.createElement("div");
+            section.className = "spieltag-section";
+
+            const headerCard = document.createElement("div");
+            headerCard.className = "spieltag-header-card";
+            headerCard.innerHTML = `<h2>${st}. Spieltag</h2><span class="badge-count">${matchesForSt.length} ${matchesForSt.length === 1 ? 'Spiel' : 'Spiele'}</span>`;
+            section.appendChild(headerCard);
+
+            const grid = document.createElement("div");
+            grid.className = "matches-grid";
+
+            matchesForSt.forEach(match => {
+                const isPlayed = match.homeScore !== null && match.awayScore !== null && !isNaN(match.homeScore) && !isNaN(match.awayScore);
+                let statusText = "Noch nicht gespielt", statusClass = "not-played", cardOutcomeClass = "";
+
+                if (isPlayed) {
+                    const kapellenScore = match.isHome ? match.homeScore : match.awayScore;
+                    const opponentScore = match.isHome ? match.awayScore : match.homeScore;
+
+                    if (kapellenScore > opponentScore) { statusText = "Sieg (2P)"; statusClass = "win"; cardOutcomeClass = "win"; }
+                    else if (kapellenScore < opponentScore) { statusText = "Niederlage (0P)"; statusClass = "loss"; cardOutcomeClass = "loss"; }
+                    else { statusText = "Unentschieden (1P)"; statusClass = "draw"; cardOutcomeClass = "draw"; }
+                }
+
+                const venueText = match.isHome ? '📍 JZ Henri, Industriestr. 9b, 47447 Moers' : (match.venue ? `📍 ${match.venue}` : '📍 Auswärtsspielstätte');
+                const card = document.createElement("div");
+                card.className = `match-card ${cardOutcomeClass}`;
+                
+                const legsInfo = isPlayed && match.homeLegs !== null && match.awayLegs !== null ? `<div class="legs-subtext">Legs: ${match.homeLegs} : ${match.awayLegs}</div>` : '';
+
+                card.innerHTML = `
+                    <div class="match-header">
+                        <div class="match-header-left">
+                            <span class="team-badge ${getTeamBadgeClass(match.team)}">${match.team}</span>
+                        </div>
+                        <span class="type-tag ${match.isHome ? 'heim' : 'auswaerts'}">${match.isHome ? 'Heim' : 'Auswärts'}</span>
+                    </div>
+                    <div class="match-body">
+                        <div class="match-date-info">${formatDate(match.date)} ${match.time ? '- ' + match.time + ' Uhr' : ''}</div>
+                        <div class="match-venue-info">${venueText}</div>
+                        <div class="teams-display">
+                            <span class="team-label ${match.teamHome.includes('TV Kapellen') ? 'highlight' : ''}">${match.teamHome}</span>
+                            <span class="vs">vs</span>
+                            <span class="team-label ${match.teamAway.includes('TV Kapellen') ? 'highlight' : ''}">${match.teamAway}</span>
+                        </div>
+                        <div class="result-display-container">
+                            <div class="score-row">
+                                <div class="score-badge ${isPlayed ? '' : 'empty'}">${isPlayed ? match.homeScore : '-'}</div>
+                                <span class="score-divider">:</span>
+                                <div class="score-badge ${isPlayed ? '' : 'empty'}">${isPlayed ? match.awayScore : '-'}</div>
+                            </div>
+                            ${legsInfo}
+                        </div>
+                    </div>
+                    <div class="match-footer">
+                        <span class="match-status ${statusClass}">${statusText}</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+
+            section.appendChild(grid);
+            container.appendChild(section);
+        });
+    }
+
+    function filterStatTeam(team, btn) {
+        btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        statSelectedTeam = team;
+        renderMatches();
+    }
+
+    function filterDisplayTeam(val) { displaySelectedTeam = val; renderMatches(); }
+    function filterType(type, btn) {
+        btn.parentElement.querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        selectedType = type;
+        renderMatches();
+    }
+    function filterSpieltag(val) { selectedSpieltag = val; renderMatches(); }
+
+    window.onload = () => { loadFromCloud(); };
 </script>
+
 </body>
 </html>
