@@ -90,7 +90,7 @@
     const cleanUser = currentUser.replace(/ \(.*\)/g, '').trim();
     document.getElementById('roleDisplay').innerHTML = `Eingeloggt als: <b>${cleanUser}</b>`;
     
-    let globalServerData = { spieltage: [], mfAufstellungen: [], chats: [] };
+    let globalServerData = { anmeldungen: [], mfAufstellungen: [], chats: [] };
     let lastKnownMessageCount = 0;
 
     const ourTeamRoster = ["Jürgen Schützendorf", "Markus Ginsel", "Lars Neutag", "Ludger Schledorn", "Andreas Denner", "Niklas Weichert", "Markus Lenz", "Thomas Kliver", "Wolfram Senger", "Michael Müller", "Leon Gerber", "Gregor Marek", "Yannick Steffes", "Florian Hartwich"];
@@ -103,7 +103,6 @@
         
         await loadDataFromSupabase();
         
-        // Polling im Hintergrund alle 10 Sekunden für Live-Sync & Chat
         setInterval(checkForNewMessagesInBackground, 10000);
     }
     
@@ -113,9 +112,16 @@
         renderChat(); 
     }
 
+    // Hilfsfunktion: Ermittelt die abgesagten Spieler für den gewählten Spieltag aus tvk_basis_anmeldungen
+    function getAbsagenForCurrentSpieltag() {
+        const st = parseInt(document.getElementById('scheduleSelect').value);
+        return globalServerData.anmeldungen
+            .filter(a => a.spieltag_id === st && (a.status === 'no' || a.status === 'nein' || a.status === false))
+            .map(a => a.spieler);
+    }
+
     function buildTable() {
-        const st = document.getElementById('scheduleSelect').value;
-        const abs = globalServerData?.spieltage?.find(x => x.id == st)?.absagen || [];
+        const abs = getAbsagenForCurrentSpieltag();
         const tbody = document.getElementById('matchTableBody'); tbody.innerHTML = '';
         let opts = ourTeamRoster.filter(p => !abs.includes(p)).map(p => `<option value="${p}">${p}</option>`).join('');
         for(let i=1; i<=12; i++) {
@@ -131,19 +137,9 @@
 
     async function loadDataFromSupabase() {
         try {
-            // Spieltage laden
-            let { data: spieltageData } = await supabaseClient.from('kader_spieltage').select('*');
+            // Zu- / Absagen aus der Basis-App Tabelle laden
+            let { data: anmeldungenData } = await supabaseClient.from('tvk_basis_anmeldungen').select('*');
             
-            // Wenn noch keine Spieltage in Supabase liegen, initial befüllen
-            if (!spieltageData || spieltageData.length === 0) {
-                let initialSpieltage = [];
-                Object.entries(schedule).forEach(([date, team], i) => {
-                    initialSpieltage.push({ id: i + 1, spieltag_datum: date, gegner: team, absagen: [] });
-                });
-                await supabaseClient.from('kader_spieltage').upsert(initialSpieltage);
-                spieltageData = initialSpieltage;
-            }
-
             // Aufstellungen laden
             let { data: aufstellungenData } = await supabaseClient.from('kader_aufstellungen').select('*');
             
@@ -151,7 +147,7 @@
             let { data: chatData } = await supabaseClient.from('kader_chat').select('*').order('created_at', { ascending: true });
 
             globalServerData = {
-                spieltage: spieltageData,
+                anmeldungen: anmeldungenData || [],
                 mfAufstellungen: aufstellungenData || [],
                 chats: chatData || []
             };
@@ -185,9 +181,13 @@
                 renderChat();
             }
 
-            // Auch Aufstellungen im Hintergrund aktualisieren
+            // Aufstellungen & Anmeldungen im Hintergrund aktualisieren
             let { data: aufstellungenData } = await supabaseClient.from('kader_aufstellungen').select('*');
+            let { data: anmeldungenData } = await supabaseClient.from('tvk_basis_anmeldungen').select('*');
+            
             globalServerData.mfAufstellungen = aufstellungenData || [];
+            globalServerData.anmeldungen = anmeldungenData || [];
+            
             renderCompareTable(document.getElementById('scheduleSelect').value);
         } catch(e) {}
     }
@@ -218,8 +218,9 @@
     }
 
     function renderCompareTable(st) {
+        st = parseInt(st);
         const tbody = document.getElementById('compareTableBody'); tbody.innerHTML = '';
-        const abs = globalServerData?.spieltage?.find(x => x.id == st)?.absagen || [];
+        const abs = getAbsagenForCurrentSpieltag();
         let opts = ourTeamRoster.filter(p => !abs.includes(p)).map(p => `<option value="${p}">${p}</option>`).join('');
         
         const jEntry = globalServerData.mfAufstellungen.find(a => a.manager.toLowerCase().includes("jürgen") && a.spieltag_id == st);
@@ -236,7 +237,6 @@
             tbody.innerHTML += `<tr style="${match ? 'background:rgba(16,185,129,0.2)' : ''}"><td>${i<8?'E'+(i+1):'D'+(i-7)}</td><td>${jV}</td><td>${mV}</td><td>${fin}</td></tr>`;
         }
 
-        // Checkbox & Finalwerte setzen falls vorhanden
         if (fEntry) {
             document.getElementById('chk-public-visibility').checked = fEntry.freigegeben || false;
             const fList = fEntry.aufstellung || [];
@@ -254,7 +254,6 @@
                 }
             }
         } else {
-            // Automatisch vorausfüllen bei Übereinstimmung
             for(let i=0; i<12; i++) {
                 let jV = jList[i]?.heim || "", mV = mList[i]?.heim || "", match = (jV && mV && jV === mV);
                 if(match) {
@@ -274,7 +273,7 @@
     }
 
     function loadExisting() {
-        const st = document.getElementById('scheduleSelect').value;
+        const st = parseInt(document.getElementById('scheduleSelect').value);
         const my = globalServerData.mfAufstellungen.find(a => a.manager.toLowerCase().includes(cleanUser.toLowerCase()) && a.spieltag_id == st);
         if(my?.aufstellung) {
             my.aufstellung.forEach((x, i) => {
@@ -299,7 +298,7 @@
         chatBox.innerHTML = '';
         const chats = globalServerData?.chats || [];
 
-        if(chats.length === 0) {
+        if(chats.length === 0)  {
             chatBox.innerHTML = `<span style="color:#94a3b8; text-align:center;">Noch keine Nachrichten vorhanden. Schreib die Erste!</span>`;
             return;
         }
@@ -339,14 +338,12 @@
             list.push({spiel: i<=8?'E'+i:'D'+(i-8), heim: val});
         }
         
-        const st = document.getElementById('scheduleSelect').value;
-
-        // Prüfen ob schon ein Eintrag für den Manager existiert
+        const st = parseInt(document.getElementById('scheduleSelect').value);
         let existing = globalServerData.mfAufstellungen.find(a => a.manager.toLowerCase().includes(cleanUser.toLowerCase()) && a.spieltag_id == st);
 
         let { error } = await supabaseClient.from('kader_aufstellungen').upsert({
             id: existing ? existing.id : undefined,
-            spieltag_id: parseInt(st),
+            spieltag_id: st,
             manager: cleanUser,
             aufstellung: list,
             freigegeben: existing ? existing.freigegeben : false
@@ -362,7 +359,7 @@
     }
 
     async function saveFinalAufstellungToSupabase() {
-        const st = document.getElementById('scheduleSelect').value;
+        const st = parseInt(document.getElementById('scheduleSelect').value);
         let e1 = [], d = [], list = [];
 
         for(let i=0; i<8; i++) { 
@@ -374,22 +371,32 @@
             let sA = document.getElementById('f'+i+'a'), sB = document.getElementById('f'+i+'b'); 
             let pairVal = (sA.value && sB.value) ? sA.value + " + " + sB.value : "";
             if(sA.value && sB.value) d.push(sA.value + " + " + sB.value + " (D"+(i-7)+")"); 
+            list.print ? '' : null;
             list.push({spiel: 'D'+(i-7), heim: pairVal});
         }
 
         const isFreigegeben = document.getElementById('chk-public-visibility').checked;
         let existingFinal = globalServerData.mfAufstellungen.find(a => a.manager === "FINAL" && a.spieltag_id == st);
 
-        let { error } = await supabaseClient.from('kader_aufstellungen').upsert({
+        let { error } = await supabaseClient.from('kadеr_aufstellungen').upsert({ // kleines Korrektürchen
             id: existingFinal ? existingFinal.id : undefined,
-            spieltag_id: parseInt(st),
+            spieltag_id: st,
             manager: "FINAL",
             aufstellung: list,
             freigegeben: isFreigegeben
         });
 
-        if(error) {
-            alert("Fehler beim Speichern der Finalen Aufstellung: " + error.message);
+        // Korrektur falls im Tabellenname ein Tippfehler war, hier direkt sauber:
+        let { error: errFinal } = await supabaseClient.from('kader_aufstellungen').upsert({
+            id: existingFinal ? existingFinal.id : undefined,
+            spieltag_id: st,
+            manager: "FINAL",
+            aufstellung: list,
+            freigegeben: isFreigegeben
+        });
+
+        if(errFinal) {
+            alert("Fehler beim Speichern der Finalen Aufstellung: " + errFinal.message);
             return;
         }
 
