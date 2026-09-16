@@ -37,9 +37,7 @@
         .stats-section { margin-top: 50px; background: rgba(212, 175, 55, 0.02); border: 1px solid rgba(212, 175, 55, 0.3); padding: 25px; border-radius: 12px; }
         .stats-table th, .stats-table td { padding: 12px; font-size: 0.95rem; text-align: center; }
         .stats-table th:first-child, .stats-table td:first-child { text-align: left; }
-        .stats-table td:nth-child(2) { text-align: left; }
 
-        /* Diskrete farbliche Unterlegung für Zahlenwerte */
         .stat-badge {
             display: inline-block;
             padding: 4px 10px;
@@ -54,9 +52,7 @@
             color: #34d399;
             border: 1px solid rgba(16, 185, 129, 0.3);
         }
-        .stat-empty {
-            color: #475569;
-        }
+        .stat-empty { color: #475569; }
 
         /* Notification Banner Style */
         #notification-banner { display: none; position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #10b981; color: #000; padding: 12px 25px; border-radius: 8px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 1000; font-size: 1.1rem; }
@@ -94,11 +90,10 @@
         </div>
     </div>
 
-    <!-- STATISTIK SEKTION MIT FARB-BADGES -->
+    <!-- EINZEL-STATISTIK SEKTION -->
     <div class="stats-section">
-        <h3 style="color:var(--gold); text-align:center; margin-bottom:20px; font-size: 1.5rem;"><i class="fa-solid fa-chart-bar"></i> Saison-Statistik (Einsätze & Doppel)</h3>
+        <h3 style="color:var(--gold); text-align:center; margin-bottom:20px; font-size: 1.5rem;"><i class="fa-solid fa-chart-bar"></i> Saison-Statistik (Einzel-Einsätze)</h3>
         
-        <h4 style="color:#fff; margin-top:20px;">Einzel-Übersicht (Wer hat wo gespielt?)</h4>
         <div style="overflow-x:auto;">
             <table class="stats-table" id="singleStatsTable">
                 <thead>
@@ -106,18 +101,6 @@
                 </thead>
                 <tbody id="singleStatsBody">
                     <tr><td colspan="10" style="text-align:center; color:#94a3b8;">Lade Statistik...</td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <h4 style="color:#fff; margin-top:30px;">Doppel-Übersicht (Kompakt nach Spieler)</h4>
-        <div style="overflow-x:auto;">
-            <table class="stats-table" id="doubleStatsTable">
-                <thead>
-                    <tr><th>Spieler</th><th>Partner-Übersicht</th><th>D1</th><th>D2</th><th>D3</th><th>D4</th><th>Gesamt</th></tr>
-                </thead>
-                <tbody id="doubleStatsBody">
-                    <tr><td colspan="7" style="text-align:center; color:#94a3b8;">Lade Statistik...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -326,7 +309,6 @@
         }
     }
 
-    // HILFSFUNKTION FÜR FARBIGE BADGES
     function fmtVal(val) {
         if (!val || val === 0 || val === '-') return '<span class="stat-empty">-</span>';
         return `<span class="stat-badge">${val}</span>`;
@@ -337,16 +319,12 @@
         return `<span class="stat-badge stat-badge-total">${val}</span>`;
     }
 
-    // STATISTIK RENDER FUNKTION (MIT FARB-BADGES)
     function renderStats() {
         const details = globalServerData.allDetails || [];
-        
         let singleStats = {}; 
-        let doublePlayerStats = {}; 
 
         ourTeamRoster.forEach(p => {
             singleStats[p] = { E1:0, E2:0, E3:0, E4:0, E5:0, E6:0, E7:0, E8:0, total:0 };
-            doublePlayerStats[p] = { partners: {}, D1:0, D2:0, D3:0, D4:0, total:0 };
         });
 
         details.forEach(row => {
@@ -360,28 +338,9 @@
                     singleStats[p][pos]++;
                     singleStats[p].total++;
                 }
-            } else if (row.kategorie === "Doppel" && row.spieler_1 && row.spieler_2) {
-                let p1 = row.spieler_1;
-                let p2 = row.spieler_2;
-                let pos = "D" + row.spiel_nummer;
-
-                if (!doublePlayerStats[p1]) doublePlayerStats[p1] = { partners: {}, D1:0, D2:0, D3:0, D4:0, total:0 };
-                doublePlayerStats[p1].partners[p2] = (doublePlayerStats[p1].partners[p2] || 0) + 1;
-                if (doublePlayerStats[p1][pos] !== undefined) {
-                    doublePlayerStats[p1][pos]++;
-                    doublePlayerStats[p1].total++;
-                }
-
-                if (!doublePlayerStats[p2]) doublePlayerStats[p2] = { partners: {}, D1:0, D2:0, D3:0, D4:0, total:0 };
-                doublePlayerStats[p2].partners[p1] = (doublePlayerStats[p2].partners[p1] || 0) + 1;
-                if (doublePlayerStats[p2][pos] !== undefined) {
-                    doublePlayerStats[p2][pos]++;
-                    doublePlayerStats[p2].total++;
-                }
             }
         });
 
-        // 1. Einzel-Tabelle rendern
         const singleBody = document.getElementById('singleStatsBody');
         singleBody.innerHTML = '';
         
@@ -408,36 +367,6 @@
 
         if (singleBody.innerHTML === '') {
             singleBody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#94a3b8;">Noch keine Einzel-Einsätze in freigegebenen Spielen vorhanden.</td></tr>`;
-        }
-
-        // 2. Doppel-Tabelle rendern
-        const doubleBody = document.getElementById('doubleStatsBody');
-        doubleBody.innerHTML = '';
-
-        let sortedDoubles = Object.entries(doublePlayerStats).sort((a, b) => b[1].total - a[1].total);
-
-        sortedDoubles.forEach(([player, data]) => {
-            if (data.total > 0) {
-                let partnerText = Object.entries(data.partners)
-                    .map(([partner, count]) => `${partner} (<span style="color:var(--gold);">${count}x</span>)`)
-                    .join(', ');
-
-                doubleBody.innerHTML += `
-                    <tr>
-                        <td style="text-align:left;"><b>${player}</b></td>
-                        <td style="text-align:left; font-size: 0.9rem; color: #cbd5e1;">${partnerText}</td>
-                        <td>${fmtVal(data.D1)}</td>
-                        <td>${fmtVal(data.D2)}</td>
-                        <td>${fmtVal(data.D3)}</td>
-                        <td>${fmtVal(data.D4)}</td>
-                        <td>${fmtTotal(data.total)}</td>
-                    </tr>
-                `;
-            }
-        });
-
-        if (doubleBody.innerHTML === '') {
-            doubleBody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#94a3b8;">Noch keine Doppel-Einsätze in freigegebenen Spielen vorhanden.</td></tr>`;
         }
     }
 
