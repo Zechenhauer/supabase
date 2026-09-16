@@ -112,7 +112,6 @@
         renderChat(); 
     }
 
-    // Hilfsfunktion: Ermittelt die abgesagten Spieler für den gewählten Spieltag aus tvk_basis_anmeldungen
     function getAbsagenForCurrentSpieltag() {
         const st = parseInt(document.getElementById('scheduleSelect').value);
         return globalServerData.anmeldungen
@@ -137,13 +136,8 @@
 
     async function loadDataFromSupabase() {
         try {
-            // Zu- / Absagen aus der Basis-App Tabelle laden
             let { data: anmeldungenData } = await supabaseClient.from('tvk_basis_anmeldungen').select('*');
-            
-            // Aufstellungen laden
             let { data: aufstellungenData } = await supabaseClient.from('kader_aufstellungen').select('*');
-            
-            // Chat laden
             let { data: chatData } = await supabaseClient.from('kader_chat').select('*').order('created_at', { ascending: true });
 
             globalServerData = {
@@ -181,7 +175,6 @@
                 renderChat();
             }
 
-            // Aufstellungen & Anmeldungen im Hintergrund aktualisieren
             let { data: aufstellungenData } = await supabaseClient.from('kader_aufstellungen').select('*');
             let { data: anmeldungenData } = await supabaseClient.from('tvk_basis_anmeldungen').select('*');
             
@@ -298,7 +291,7 @@
         chatBox.innerHTML = '';
         const chats = globalServerData?.chats || [];
 
-        if(chats.length === 0)  {
+        if(chats.length === 0) {
             chatBox.innerHTML = `<span style="color:#94a3b8; text-align:center;">Noch keine Nachrichten vorhanden. Schreib die Erste!</span>`;
             return;
         }
@@ -360,33 +353,21 @@
 
     async function saveFinalAufstellungToSupabase() {
         const st = parseInt(document.getElementById('scheduleSelect').value);
-        let e1 = [], d = [], list = [];
+        let list = [];
 
         for(let i=0; i<8; i++) { 
             let v = document.getElementById('f'+i).value; 
-            if(v) e1.push(v + " (E"+(i+1)+")"); 
             list.push({spiel: 'E'+(i+1), heim: v});
         }
         for(let i=8; i<12; i++) { 
             let sA = document.getElementById('f'+i+'a'), sB = document.getElementById('f'+i+'b'); 
             let pairVal = (sA.value && sB.value) ? sA.value + " + " + sB.value : "";
-            if(sA.value && sB.value) d.push(sA.value + " + " + sB.value + " (D"+(i-7)+")"); 
-            list.print ? '' : null;
             list.push({spiel: 'D'+(i-7), heim: pairVal});
         }
 
         const isFreigegeben = document.getElementById('chk-public-visibility').checked;
         let existingFinal = globalServerData.mfAufstellungen.find(a => a.manager === "FINAL" && a.spieltag_id == st);
 
-        let { error } = await supabaseClient.from('kadеr_aufstellungen').upsert({ // kleines Korrektürchen
-            id: existingFinal ? existingFinal.id : undefined,
-            spieltag_id: st,
-            manager: "FINAL",
-            aufstellung: list,
-            freigegeben: isFreigegeben
-        });
-
-        // Korrektur falls im Tabellenname ein Tippfehler war, hier direkt sauber:
         let { error: errFinal } = await supabaseClient.from('kader_aufstellungen').upsert({
             id: existingFinal ? existingFinal.id : undefined,
             spieltag_id: st,
@@ -400,7 +381,45 @@
             return;
         }
 
-        alert("Finale Aufstellung gespeichert & Status aktualisiert!");
+        // Direkt in die echte Haupt-App Tabelle 'tvk_basis_spiel_details' übertragen!
+        let detailRows = [];
+        
+        // Einzel (E1 bis E8)
+        for(let i=0; i<8; i++) {
+            let spielerName = document.getElementById('f'+i).value;
+            detailRows.push({
+                spieltag_id: st,
+                kategorie: "Einzel",
+                spiel_nummer: i + 1,
+                spieler_1: spielerName || null,
+                spieler_2: null,
+                gewonnen: true
+            });
+        }
+
+        // Doppel (D1 bis D4)
+        for(let i=8; i<12; i++) {
+            let sA = document.getElementById('f'+i+'a').value;
+            let sB = document.getElementById('f'+i+'b').value;
+            detailRows.push({
+                spieltag_id: st,
+                kategorie: "Doppel",
+                spiel_nummer: i - 7,
+                spieler_1: sA || null,
+                spieler_2: sB || null,
+                gewonnen: true
+            });
+        }
+
+        await supabaseClient.from('tvk_basis_spiel_details').delete().eq('spieltag_id', st);
+        let { error: errDetails } = await supabaseClient.from('tvk_basis_spiel_details').insert(detailRows);
+
+        if(errDetails) {
+            alert("Aufstellung gespeichert, aber Fehler beim Übertragen in tvk_basis_spiel_details: " + errDetails.message);
+            return;
+        }
+
+        alert("Finale Aufstellung erfolgreich gespeichert & an die Haupt-App (tvk_basis_spiel_details) übergeben!");
         await loadDataFromSupabase();
     }
 
