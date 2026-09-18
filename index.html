@@ -902,7 +902,14 @@
 
             if (data && data.payload) {
                 let cloudData = data.payload;
-                if (cloudData && cloudData.matches) {
+                
+                // 1. Prüfen, ob ein einzelnes Live-Update von Home Assistant kam
+                if (cloudData.liveUpdate) {
+                    applyLiveUpdate(cloudData.liveUpdate);
+                }
+
+                // 2. Reguläre Spieltage mergen
+                if (cloudData.matches) {
                     leagueData.currentMatchday = cloudData.currentMatchday || leagueData.currentMatchday;
                     mergeMatches(cloudData);
                 }
@@ -913,6 +920,26 @@
             console.log('Supabase Ladehinweis:', e);
         }
         renderAll();
+    }
+
+    // Intelligente Funktion: Sucht das Spiel in ALLEN Spieltagen und aktualisiert den Spielstand
+    function applyLiveUpdate(live) {
+        if (!live || !live.home || !live.away) return;
+        
+        let found = false;
+        for (let mDay in leagueData.matches) {
+            let matchList = leagueData.matches[mDay];
+            matchList.forEach(m => {
+                if (m.home === live.home && m.away === live.away) {
+                    m.homeScore = live.homeScore;
+                    m.awayScore = live.awayScore;
+                    found = true;
+                }
+            });
+        }
+        if (found) {
+            console.log(`Live-Update angewendet für: ${live.home} vs ${live.away} (${live.homeScore}:${live.awayScore})`);
+        }
     }
 
     function mergeMatches(sourceData) {
