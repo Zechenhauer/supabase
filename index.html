@@ -356,7 +356,7 @@
     <div class="subtitle" id="leagueSubtitle">1. Bundesliga — Saison 2026/27</div>
     <div class="meta-info">
         <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
-        <span class="supabase-badge">● Live-Sync aktiv (alle 30 Sek.)</span>
+        <span class="supabase-badge">● Live-Sync & Smart-Refresh aktiv</span>
     </div>
 
     <!-- BAYERN AUSWERTUNG & TORSCHÜTZEN -->
@@ -880,7 +880,6 @@
                 .select('*');
 
             if (data && Array.isArray(data)) {
-                // Zurücksetzen vor dem Laden, damit gelöschte Einträge verschwinden
                 for (let mDay in leagueData.matches) {
                     leagueData.matches[mDay].forEach(m => {
                         delete m.homeScore;
@@ -1268,8 +1267,16 @@
     // App beim Start initialisieren und Daten laden
     loadFromCloud();
 
-    // Automatische Aktualisierung alle 30 Sekunden (30000 Millisekunden)
-    setInterval(loadFromCloud, 30000);
+    // Intelligenter Auto-Refresh: Prüft alle 30 Sekunden, ob heute am aktuellen Spieltag ein Spiel ansteht
+    setInterval(() => {
+        let todayStr = new Date().toISOString().split('T')[0];
+        let matchesToday = leagueData.matches[leagueData.currentMatchday] || [];
+        let hasMatchToday = matchesToday.some(m => m.date === todayStr);
+
+        if (hasMatchToday) {
+            loadFromCloud();
+        }
+    }, 30000);
 </script>
 
 </body>
