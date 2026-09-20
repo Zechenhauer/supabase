@@ -124,24 +124,6 @@
             margin-bottom: 15px;
             letter-spacing: 0.5px;
             box-shadow: 0 2px 8px rgba(220, 5, 45, 0.3);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .refresh-btn {
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #ffffff;
-            padding: 4px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.75rem;
-            font-weight: normal;
-            transition: background 0.2s;
-        }
-        .refresh-btn:hover {
-            background: rgba(0, 0, 0, 0.45);
         }
 
         .matchday-controls {
@@ -399,10 +381,7 @@
 
     <!-- SPIELTAGS-TABELLE -->
     <div class="section-box">
-        <div class="section-header">
-            <span id="matchdayTableHeader">Spieltag 1 — Spiele & Ergebnisse</span>
-            <button class="refresh-btn" onclick="loadFromCloud()">🔄 Aktualisieren</button>
-        </div>
+        <div class="section-header" id="matchdayTableHeader">Spieltag 1 — Spiele & Ergebnisse</div>
         <div class="matchday-controls">
             <button class="matchday-btn" onclick="changeMatchday(-1)">◀ Vorheriger Spieltag</button>
             <strong id="matchdayDisplay" style="color: var(--bayern-bright-red); font-size: 1.1rem;">Spieltag 1</strong>
@@ -474,6 +453,7 @@
     const ADMIN_PIN = "1919";
     let isAdmin = false;
 
+    // Fester, unveränderlicher Standard-Spielplan für alle 34 Spieltage
     let leagueData = {
         currentMatchday: 1,
         teams: [
@@ -892,29 +872,27 @@
         }
     }
 
+    // Lädt alle Spiel-Ergebnisse aus der neuen Tabelle "bundesliga_spiele"
     async function loadFromCloud() {
         try {
             let { data, error } = await supabaseClient
-                .from('bundesliga_2627')
-                .select('payload')
-                .eq('id', 'season_data')
-                .single();
+                .from('bundesliga_spiele')
+                .select('*');
 
-            if (data && data.payload) {
-                let cloudData = data.payload;
-                
-                // 1. Prüfen, ob ein einzelnes Live-Update von Home Assistant kam
-                if (cloudData.liveUpdate) {
-                    applyLiveUpdate(cloudData.liveUpdate);
-                }
-
-                // 2. Reguläre Spieltage mergen
-                if (cloudData.matches) {
-                    leagueData.currentMatchday = cloudData.currentMatchday || leagueData.currentMatchday;
-                    mergeMatches(cloudData);
-                }
-            } else {
-                saveToCloud();
+            if (data && Array.isArray(data)) {
+                data.forEach(row => {
+                    let mDay = row.matchday;
+                    if (leagueData.matches[mDay]) {
+                        let matchObj = leagueData.matches[mDay].find(m => 
+                            m.home === row.home_team && m.away === row.away_team
+                        );
+                        if (matchObj) {
+                            matchObj.homeScore = row.home_score;
+                            matchObj.awayScore = row.away_score;
+                            matchObj.bayernScorers = row.bayern_scorers;
+                        }
+                    }
+                });
             }
         } catch (e) {
             console.log('Supabase Ladehinweis:', e);
@@ -922,49 +900,38 @@
         renderAll();
     }
 
-    // Intelligente Funktion: Sucht das Spiel in ALLEN Spieltagen und aktualisiert den Spielstand
-    function applyLiveUpdate(live) {
-        if (!live || !live.home || !live.away) return;
-        
-        let found = false;
-        for (let mDay in leagueData.matches) {
-            let matchList = leagueData.matches[mDay];
-            matchList.forEach(m => {
-                if (m.home === live.home && m.away === live.away) {
-                    m.homeScore = live.homeScore;
-                    m.awayScore = live.awayScore;
-                    found = true;
-                }
-            });
-        }
-        if (found) {
-            console.log(`Live-Update angewendet für: ${live.home} vs ${live.away} (${live.homeScore}:${live.awayScore})`);
-        }
-    }
+    // Speichert geänderte Ergebnisse (z.B. im Admin-Modus) in die Tabelle
+    async function saveToCloud() {
+        try {
+            let rowsToUpsert = [];
 
-    function mergeMatches(sourceData) {
-        if (!sourceData || !sourceData.matches) return;
-        for (let mDay in sourceData.matches) {
-            if (leagueData.matches[mDay]) {
-                sourceData.matches[mDay].forEach((savedM, sIdx) => {
-                    if (leagueData.matches[mDay][sIdx]) {
-                        if (savedM.homeScore !== undefined) leagueData.matches[mDay][sIdx].homeScore = savedM.homeScore;
-                        if (savedM.awayScore !== undefined) leagueData.matches[mDay][sIdx].awayScore = savedM.awayScore;
-                        if (savedM.bayernScorers !== undefined) leagueData.matches[mDay][sIdx].bayernScorers = savedM.bayernScorers;
+            for (let mDay in leagueData.matches) {
+                leagueData.matches[mDay].forEach(m => {
+                    if (m.homeScore !== undefined && m.homeScore !== null && m.awayScore !== undefined && m.awayScore !== null) {
+                        let matchIdStr = "s" + mDay + "_" + m.home.trim().toLowerCase().replace(/[^a-z0-9]/g, "_") + "_vs_" + m.away.trim().toLowerCase().replace(/[^a-z0-9]/g, "_");
+                        
+                        rowsToUpsert.push({
+                            match_id: matchIdStr,
+                            matchday: parseInt(mDay),
+                            home_team: m.home,
+                            away_team: m.away,
+                            home_score: parseInt(m.homeScore),
+                            away_score: parseInt(m.awayScore),
+                            bayern_scorers: m.bayernScorers || ""
+                        });
                     }
                 });
             }
-        }
-    }
 
-    async function saveToCloud() {
-        try {
-            let { error } = await supabaseClient
-                .from('bundesliga_2627')
-                .upsert({ id: 'season_data', payload: leagueData });
-            
-            if (error) {
-                console.error('Supabase Speicherfehler:', error.message);
+            if (rowsToUpsert.length > 0) {
+                let { error } = await supabaseClient
+                    .from('bundesliga_spiele')
+                    .upsert(rowsToUpsert, { onConflict: 'match_id' });
+                
+                if (error) {
+                    console.error('Supabase Speicherfehler:', error.message);
+                    alert('Fehler beim Speichern in Supabase: ' + error.message);
+                }
             }
         } catch (e) {
             console.error('Speicherfehler:', e);
@@ -973,7 +940,7 @@
 
     function changeMatchday(amount) {
         leagueData.currentMatchday = Math.max(1, Math.min(34, leagueData.currentMatchday + amount));
-        saveAndSync();
+        renderAll();
     }
 
     function renderAll() {
@@ -1134,8 +1101,8 @@
         Object.values(leagueData.matches).forEach(matchList => {
             if (!Array.isArray(matchList)) return;
             matchList.forEach(m => {
-                let hScore = m.homeScore !== undefined && m.homeScore !== null ? m.homeScore : (m.homescore !== undefined && m.homescore !== null ? m.homescore : null);
-                let aScore = m.awayScore !== undefined && m.awayScore !== null ? m.awayScore : (m.awayscore !== undefined && m.awayscore !== null ? m.awayscore : null);
+                let hScore = m.homeScore !== undefined && m.homeScore !== null ? m.homeScore : null;
+                let aScore = m.awayScore !== undefined && m.awayScore !== null ? m.awayScore : null;
 
                 if (hScore === null || aScore === null) return;
 
@@ -1238,11 +1205,11 @@
                     </div>
                     <div class="form-group">
                         <label>Tore Heim</label>
-                        <input type="number" id="hs_${idx}" class="form-control" value="${m.homeScore !== undefined && m.homeScore !== null ? m.homeScore : (m.homescore !== undefined && m.homescore !== null ? m.homescore : '')}" min="0">
+                        <input type="number" id="hs_${idx}" class="form-control" value="${m.homeScore !== undefined && m.homeScore !== null ? m.homeScore : ''}" min="0">
                     </div>
                     <div class="form-group">
                         <label>Tore Gast</label>
-                        <input type="number" id="as_${idx}" class="form-control" value="${m.awayScore !== undefined && m.awayScore !== null ? m.awayScore : (m.awayscore !== undefined && m.awayscore !== null ? m.awayscore : '')}" min="0">
+                        <input type="number" id="as_${idx}" class="form-control" value="${m.awayScore !== undefined && m.awayScore !== null ? m.awayScore : ''}" min="0">
                     </div>
                     ${scorersInputHtml}
                 </div>
@@ -1288,27 +1255,8 @@
         saveToCloud();
     }
 
-    // Automatischer Auto-Refresh (prüft alle 30 Sekunden, ob heute ein Spiel ansteht und lädt neu)
-    function setupAutoRefresh() {
-        setInterval(() => {
-            const todayStr = new Date().toISOString().split('T')[0];
-            let hasMatchToday = false;
-            let currentMatchdayData = leagueData.matches[leagueData.currentMatchday];
-            
-            if (Array.isArray(currentMatchdayData)) {
-                hasMatchToday = currentMatchdayData.some(match => match.date === todayStr);
-            }
-
-            if (hasMatchToday) {
-                console.log("Live-Spieltag erkannt: Aktualisiere Daten von Supabase...");
-                loadFromCloud();
-            }
-        }, 30000);
-    }
-
-    // Initialisierung beim Laden
+    // App beim Start initialisieren und Daten laden
     loadFromCloud();
-    setupAutoRefresh();
 </script>
 
 </body>
