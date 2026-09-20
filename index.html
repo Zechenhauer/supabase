@@ -1227,7 +1227,7 @@
         });
     }
 
-    function saveAllMatches() {
+    async function saveAllMatches() {
         let existingMatches = leagueData.matches[leagueData.currentMatchday] || [];
         for (let idx = 0; idx < existingMatches.length; idx++) {
             let hsVal = document.getElementById(`hs_${idx}`).value;
@@ -1246,7 +1246,9 @@
                 delete existingMatches[idx].bayernScorers;
             }
         }
-        saveAndSync();
+        renderAll();
+        await saveToCloud();
+        await loadFromCloud();
     }
 
     function deleteMatchResult(idx) {
@@ -1267,8 +1269,10 @@
     // App beim Start initialisieren und Daten laden
     loadFromCloud();
 
-    // Intelligenter Auto-Refresh: Prüft alle 30 Sekunden, ob heute am aktuellen Spieltag ein Spiel ansteht
+    // Auto-Refresh mit Admin-Sperre (während du tippst oder im Admin-Modus bist, wird nichts im Hintergrund neu geladen)
     setInterval(() => {
+        if (isAdmin) return;
+
         let todayStr = new Date().toISOString().split('T')[0];
         let matchesToday = leagueData.matches[leagueData.currentMatchday] || [];
         let hasMatchToday = matchesToday.some(m => m.date === todayStr);
