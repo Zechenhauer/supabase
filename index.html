@@ -872,7 +872,6 @@
         }
     }
 
-    // Lädt alle Spiel-Ergebnisse aus der Supabase-Tabelle "bundesliga_spiele"
     async function loadFromCloud() {
         try {
             let { data, error } = await supabaseClient
@@ -909,7 +908,6 @@
         renderAll();
     }
 
-    // Speichert geänderte Ergebnisse in die Tabelle
     async function saveToCloud() {
         try {
             let rowsToUpsert = [];
@@ -1070,7 +1068,8 @@
                 }
             }
 
-            if (isBayernMatch && hasResult && m.bayernScorers) {
+            // ANPASSUNG: Torschützen werden jetzt für JEDE Partie angezeigt, wenn vorhanden!
+            if (hasResult && m.bayernScorers && m.bayernScorers.trim() !== "") {
                 resultDisplay += `<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">⚽ ${m.bayernScorers}</div>`;
             }
 
@@ -1184,19 +1183,16 @@
         let existingMatches = leagueData.matches[leagueData.currentMatchday] || [];
 
         existingMatches.forEach((m, idx) => {
-            let isBayern = (m.home === "FC Bayern München" || m.away === "FC Bayern München");
             let card = document.createElement('div');
             card.className = 'match-input-card';
             
-            let scorersInputHtml = '';
-            if (isBayern) {
-                scorersInputHtml = `
-                    <div class="form-group" style="grid-column: span 2; margin-top: 6px;">
-                        <label>Bayern Torschützen (z.B. Kane (2), Musiala)</label>
-                        <input type="text" id="bs_${idx}" class="form-control" value="${m.bayernScorers || ''}" placeholder="Torschützen eintragen...">
-                    </div>
-                `;
-            }
+            // Jedes Spiel bekommt jetzt im Admin-Modus das Torschützen-Eingabefeld!
+            let scorersInputHtml = `
+                <div class="form-group" style="grid-column: span 2; margin-top: 6px;">
+                    <label>Torschützen (z.B. Kane (2), Musiala)</label>
+                    <input type="text" id="bs_${idx}" class="form-control" value="${m.bayernScorers || ''}" placeholder="Torschützen eintragen...">
+                </div>
+            `;
 
             card.innerHTML = `
                 <div style="font-size: 0.8rem; color: var(--bayern-bright-red); font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between;">
@@ -1269,7 +1265,7 @@
     // App beim Start initialisieren und Daten laden
     loadFromCloud();
 
-    // Auto-Refresh mit Admin-Sperre (während du tippst oder im Admin-Modus bist, wird nichts im Hintergrund neu geladen)
+    // Auto-Refresh mit Admin-Sperre
     setInterval(() => {
         if (isAdmin) return;
 
