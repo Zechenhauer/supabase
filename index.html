@@ -356,7 +356,7 @@
     <div class="subtitle" id="leagueSubtitle">1. Bundesliga — Saison 2026/27</div>
     <div class="meta-info">
         <span>⚡ Web-App & Management: Jürgen Schützendorf</span>
-        <span class="supabase-badge">● Mit Supabase verbunden</span>
+        <span class="supabase-badge">● Live-Sync aktiv (alle 30 Sek.)</span>
     </div>
 
     <!-- BAYERN AUSWERTUNG & TORSCHÜTZEN -->
@@ -872,7 +872,7 @@
         }
     }
 
-    // Lädt alle Spiel-Ergebnisse aus der neuen Tabelle "bundesliga_spiele"
+    // Lädt alle Spiel-Ergebnisse aus der Supabase-Tabelle "bundesliga_spiele"
     async function loadFromCloud() {
         try {
             let { data, error } = await supabaseClient
@@ -880,11 +880,21 @@
                 .select('*');
 
             if (data && Array.isArray(data)) {
+                // Zurücksetzen vor dem Laden, damit gelöschte Einträge verschwinden
+                for (let mDay in leagueData.matches) {
+                    leagueData.matches[mDay].forEach(m => {
+                        delete m.homeScore;
+                        delete m.awayScore;
+                        delete m.bayernScorers;
+                    });
+                }
+
                 data.forEach(row => {
                     let mDay = row.matchday;
                     if (leagueData.matches[mDay]) {
                         let matchObj = leagueData.matches[mDay].find(m => 
-                            m.home === row.home_team && m.away === row.away_team
+                            m.home.toLowerCase().trim() === row.home_team.toLowerCase().trim() && 
+                            m.away.toLowerCase().trim() === row.away_team.toLowerCase().trim()
                         );
                         if (matchObj) {
                             matchObj.homeScore = row.home_score;
@@ -900,7 +910,7 @@
         renderAll();
     }
 
-    // Speichert geänderte Ergebnisse (z.B. im Admin-Modus) in die Tabelle
+    // Speichert geänderte Ergebnisse in die Tabelle
     async function saveToCloud() {
         try {
             let rowsToUpsert = [];
@@ -1257,6 +1267,9 @@
 
     // App beim Start initialisieren und Daten laden
     loadFromCloud();
+
+    // Automatische Aktualisierung alle 30 Sekunden (30000 Millisekunden)
+    setInterval(loadFromCloud, 30000);
 </script>
 
 </body>
