@@ -1068,7 +1068,6 @@
                 }
             }
 
-            // ANPASSUNG: Torschützen werden jetzt für JEDE Partie angezeigt, wenn vorhanden!
             if (hasResult && m.bayernScorers && m.bayernScorers.trim() !== "") {
                 resultDisplay += `<div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 2px;">⚽ ${m.bayernScorers}</div>`;
             }
@@ -1186,7 +1185,6 @@
             let card = document.createElement('div');
             card.className = 'match-input-card';
             
-            // Jedes Spiel bekommt jetzt im Admin-Modus das Torschützen-Eingabefeld!
             let scorersInputHtml = `
                 <div class="form-group" style="grid-column: span 2; margin-top: 6px;">
                     <label>Torschützen (z.B. Kane (2), Musiala)</label>
@@ -1262,7 +1260,36 @@
         saveToCloud();
     }
 
-    // App beim Start initialisieren und Daten laden
+    // Ermittelt automatisch den passenden Spieltag anhand des heutigen Datums
+    function detectCurrentMatchday() {
+        let todayStr = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+        let foundMatchday = 1;
+        let smallestDiff = Infinity;
+
+        for (let mDay in leagueData.matches) {
+            let matchList = leagueData.matches[mDay];
+            for (let m of matchList) {
+                if (m.date) {
+                    let matchDate = new Date(m.date);
+                    let todayDate = new Date(todayStr);
+                    let diffDays = (matchDate - todayDate) / (1000 * 60 * 60 * 24);
+
+                    if (m.date === todayStr) {
+                        return parseInt(mDay);
+                    }
+
+                    if (diffDays >= 0 && diffDays < smallestDiff) {
+                        smallestDiff = diffDays;
+                        foundMatchday = parseInt(mDay);
+                    }
+                }
+            }
+        }
+        return foundMatchday;
+    }
+
+    // App beim Start initialisieren: Spieltag automatisch erkennen und Daten laden
+    leagueData.currentMatchday = detectCurrentMatchday();
     loadFromCloud();
 
     // Auto-Refresh mit Admin-Sperre
